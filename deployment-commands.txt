@@ -1,0 +1,61 @@
+# SlotPot Backend Deployment Commands for Hostinger VPS
+# Run these commands after SSH into root@82.29.173.197
+
+# 1. Update system and install required packages
+apt update && apt upgrade -y
+apt install -y curl wget unzip
+
+# 2. Install Node.js 18.x
+curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+apt-get install -y nodejs
+
+# 3. Install PM2 globally
+npm install -g pm2
+
+# 4. Create application directory
+mkdir -p /var/www/slotpot-backend
+cd /var/www/slotpot-backend
+
+# 5. Extract uploaded files
+unzip /root/slotpot-backend.zip
+mv backend/* .
+rmdir backend
+
+# 6. Install dependencies
+npm install --production
+
+# 7. Create environment file
+cp env.example .env
+
+# 8. Edit environment file (IMPORTANT!)
+nano .env
+# Update these values:
+# - TON_API_KEY=your_actual_api_key
+# - CONTRACT_ADDRESS=your_contract_address
+# - ADMIN_MNEMONIC=your_24_word_mnemonic
+# - ADMIN_API_KEY=your_secure_admin_key
+
+# 9. Create logs directory
+mkdir -p logs
+
+# 10. Test the application
+node server.js
+# Press Ctrl+C to stop after testing
+
+# 11. Start with PM2
+pm2 start ecosystem.config.js --env production
+
+# 12. Save PM2 configuration
+pm2 save
+pm2 startup
+
+# 13. Configure firewall
+ufw allow 5002
+ufw --force enable
+
+# 14. Check status
+pm2 status
+pm2 logs slotpot-backend --lines 20
+
+# Your API will be available at:
+# http://82.29.173.197:5002/api/admin/status 

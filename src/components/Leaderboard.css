@@ -1,0 +1,340 @@
+.leaderboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  height: 100%;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: white;
+  font-size: 16px;
+}
+
+.round-number {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.current-winner-section {
+  background: rgba(26, 26, 46, 0.6);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.winner-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.winner-avatar {
+  position: relative;
+  width: 48px;
+  height: 48px;
+}
+
+.winner-avatar img,
+.generated-avatar-small {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.winner-crown {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 16px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.winner-info {
+  flex: 1;
+}
+
+.winner-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.winner-name {
+  font-weight: 600;
+  color: white;
+  font-size: 16px;
+}
+
+.winner-level {
+  background: rgba(139, 92, 246, 0.2);
+  color: #8b5cf6;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.winner-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.stat-value {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.win-amount {
+  color: #10b981;
+}
+
+.chance-percent {
+  color: #06b6d4;
+}
+
+.previous-round-section {
+  background: rgba(26, 26, 46, 0.4);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.previous-round-number {
+  color: #8b5cf6;
+  font-weight: 600;
+}
+
+.previous-round-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.round-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.recent-winners-section {
+  background: rgba(26, 26, 46, 0.4);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  flex: 1;
+}
+
+.winners-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.winner-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(15, 15, 35, 0.6);
+  border-radius: 14px;
+  border: 1px solid rgba(139, 92, 246, 0.1);
+  transition: all 0.2s ease;
+}
+
+.winner-item:hover {
+  border-color: rgba(139, 92, 246, 0.3);
+  background: rgba(15, 15, 35, 0.8);
+}
+
+.winner-rank {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+  min-width: 20px;
+}
+
+.winner-avatar-small {
+  width: 24px;
+  height: 24px;
+}
+
+.generated-avatar-small {
+  font-size: 11px;
+}
+
+.winner-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.winner-name-small {
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+
+.winner-round {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.winner-amount {
+  font-size: 11px;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.luck-section {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.luck-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.luck-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f59e0b;
+  letter-spacing: 1px;
+}
+
+.luck-icon {
+  font-size: 14px;
+}
+
+.luck-info {
+  display: flex;
+  justify-content: center;
+}
+
+.luck-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.luck-label {
+  font-size: 12px;
+  color: rgba(245, 158, 11, 0.8);
+}
+
+.luck-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+/* Scrollbar styling */
+.leaderboard-container::-webkit-scrollbar,
+.winners-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.leaderboard-container::-webkit-scrollbar-track,
+.winners-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.leaderboard-container::-webkit-scrollbar-thumb,
+.winners-list::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 8px;
+}
+
+.leaderboard-container::-webkit-scrollbar-thumb:hover,
+.winners-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.5);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .leaderboard-container {
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .winner-card {
+    gap: 10px;
+  }
+  
+  .winner-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .winner-name {
+    font-size: 14px;
+  }
+  
+  .winners-list {
+    max-height: 150px;
+  }
+} 

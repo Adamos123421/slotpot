@@ -1,0 +1,324 @@
+.fullscreen-control {
+  background: 
+    linear-gradient(145deg, rgba(8, 12, 20, 0.98), rgba(18, 22, 30, 0.95)),
+    radial-gradient(circle at 30% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 60%);
+  border: 1px solid;
+  border-image: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(59, 130, 246, 0.2)) 1;
+  border-radius: 20px;
+  padding: 20px;
+  margin: 12px 0;
+  backdrop-filter: blur(32px) saturate(180%);
+  box-shadow: 
+    0 16px 64px rgba(0, 0, 0, 0.4),
+    0 4px 16px rgba(139, 92, 246, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.fullscreen-control:hover {
+  box-shadow: 
+    0 20px 80px rgba(0, 0, 0, 0.5),
+    0 8px 32px rgba(139, 92, 246, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  border-image: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(59, 130, 246, 0.3)) 1;
+}
+
+/* Enhanced styling in full-screen mode */
+html.telegram-fullscreen .fullscreen-control {
+  background: rgba(8, 8, 15, 0.98);
+  border-color: rgba(139, 92, 246, 0.25);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.fullscreen-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.status-dot.active {
+  background: #10b981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+  animation: statusPulse 2s infinite;
+}
+
+.status-dot.inactive {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.status-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  letter-spacing: 0.3px;
+}
+
+.viewport-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.orientation-badge {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+}
+
+.dimensions-text {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'SF Mono', Monaco, monospace;
+}
+
+.control-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.control-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: 
+    linear-gradient(145deg, rgba(15, 18, 26, 0.9), rgba(25, 28, 36, 0.8)),
+    radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
+  border: 1px solid;
+  border-image: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(139, 92, 246, 0.15)) 1;
+  border-radius: 14px;
+  padding: 12px 16px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  min-height: 44px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(16px) saturate(180%);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    0 1px 4px rgba(139, 92, 246, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.control-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.control-btn:hover::before {
+  left: 100%;
+}
+
+.control-btn:hover {
+  background: 
+    linear-gradient(145deg, rgba(20, 23, 31, 0.95), rgba(30, 33, 41, 0.9)),
+    radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
+  border-image: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(139, 92, 246, 0.25)) 1;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(139, 92, 246, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.control-btn:active {
+  transform: translateY(0);
+}
+
+.fullscreen-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+.fullscreen-btn.active {
+  background: 
+    linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%),
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  border-image: linear-gradient(135deg, rgba(139, 92, 246, 0.6), rgba(168, 85, 247, 0.4)) 1;
+  color: white;
+  box-shadow: 
+    0 8px 32px rgba(139, 92, 246, 0.4),
+    0 2px 8px rgba(139, 92, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.fullscreen-btn.active:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+.btn-text {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.orientation-controls {
+  display: flex;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.orientation-btn {
+  min-width: 36px;
+  padding: 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.orientation-btn:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.layout-info {
+  text-align: center;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.layout-mode-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* Landscape Layout Adaptations */
+@media (orientation: landscape) {
+  .fullscreen-control {
+    margin: 8px 0;
+  }
+  
+  .fullscreen-status {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .control-buttons {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .fullscreen-btn {
+    min-width: 120px;
+  }
+}
+
+/* Full-Screen Landscape Enhancements */
+@media (orientation: landscape) {
+  html.telegram-fullscreen .fullscreen-control {
+    padding: 20px;
+    border-radius: 20px;
+  }
+  
+  html.telegram-fullscreen .control-btn {
+    padding: 12px 16px;
+    border-radius: 12px;
+  }
+  
+  html.telegram-fullscreen .orientation-badge {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
+/* Small screen optimizations */
+@media (max-width: 480px) {
+  .fullscreen-control {
+    padding: 12px;
+    margin: 8px 0;
+  }
+  
+  .fullscreen-status {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    text-align: center;
+  }
+  
+  .viewport-info {
+    justify-content: center;
+  }
+  
+  .control-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .orientation-controls {
+    justify-content: center;
+  }
+}
+
+/* Animation for mode transitions */
+.fullscreen-control * {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Accessibility improvements */
+.control-btn:focus {
+  outline: 2px solid rgba(139, 92, 246, 0.6);
+  outline-offset: 2px;
+}
+
+.control-btn:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Loading states */
+.control-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.control-btn:disabled:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+} 

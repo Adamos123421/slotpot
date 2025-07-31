@@ -1,0 +1,16 @@
+name: slotpot-backend
+services:
+- name: api
+  source_dir: /
+  github:
+    repo: your-username/slotpot
+    branch: main
+  run_command: npm start
+  environment_slug: node-js
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  envs:
+  - key: NODE_ENV
+    value: production
+  - key: PORT
+    value: "8080" 
