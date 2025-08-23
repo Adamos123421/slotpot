@@ -24,7 +24,7 @@ class SocketService {
       return;
     }
 
-    const socketUrl = "https://hk-seeks-jet-session.trycloudflare.com";
+    const socketUrl = "https://insight-enforcement-soul-tonight.trycloudflare.com";
     
     // Creating socket connection
     this.socket = io(socketUrl, {

@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://hk-seeks-jet-session.trycloudflare.com';
+const API_BASE_URL = 'https://insight-enforcement-soul-tonight.trycloudflare.com';
 
 class ApiService {
   constructor() {

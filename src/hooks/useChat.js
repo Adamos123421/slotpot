@@ -244,7 +244,7 @@ const useChat = () => {
     getChatStats,
     
     // Connection info
-            serverUrl: 'http://https://hk-seeks-jet-session.trycloudflare.com  ',
+            serverUrl: 'http://https://insight-enforcement-soul-tonight.trycloudflare.com  ',
     userInfo: {
       username: user?.displayName || 'Anonymous',
       isRealUser: hasRealUserData,
