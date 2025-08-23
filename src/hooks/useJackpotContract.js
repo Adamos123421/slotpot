@@ -57,6 +57,7 @@ const useJackpotContract = () => {
 
   // Loading states
   const [isPlacingBet, setIsPlacingBet] = useState(false);
+  const [isLoadingContract, setIsLoadingContract] = useState(true);
 
   // Essential refs for hook functionality
   const prevIsActiveRef = useRef(contractState.isActive);
@@ -115,6 +116,8 @@ const useJackpotContract = () => {
     
     // Listen for full game updates to sync contract state
     const handleFullGameUpdate = (gameData) => {
+      // Set loading to false when first data is received
+      setIsLoadingContract(false);
       
       setContractState(prevState => ({
         ...prevState,
@@ -138,6 +141,8 @@ const useJackpotContract = () => {
     };
 
     const handleContractUpdate = (contractData) => {
+      // Set loading to false when first data is received
+      setIsLoadingContract(false);
       
       setContractState(prevState => ({
         ...prevState,
@@ -146,6 +151,8 @@ const useJackpotContract = () => {
     };
 
     const handleBettorsUpdate = (bettorsData) => {
+      // Set loading to false when first data is received
+      setIsLoadingContract(false);
       
       if (bettorsData.bettors) {
         setCurrentBettors(bettorsData.bettors);
@@ -346,6 +353,7 @@ const useJackpotContract = () => {
     isPlacingBet,
     isRestoringConnection,
     walletLoading,
+    isLoadingContract,
     
     // Actions
     placeBet,

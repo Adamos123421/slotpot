@@ -782,11 +782,12 @@ function AppContent() {
           <button 
                 className="bet-button" 
                 onClick={handlePlaceBet}
-                disabled={isPlacingBet || betLoadingState.isWaitingForWagerChange || !isConnected || contractWinner || showWinnerAnnouncement}
+                disabled={isPlacingBet || betLoadingState.isWaitingForWagerChange || !isConnected || contractWinner || showWinnerAnnouncement || isLoadingContract}
           >
                 {contractWinner || showWinnerAnnouncement ? 'Winner Display - Wait for New Round' :
                  isPlacingBet ? 'Betting...' :
-                 betLoadingState.isWaitingForWagerChange ? 'Processing Bet...' : 'Bet'}
+                 betLoadingState.isWaitingForWagerChange ? 'Processing Bet...' :
+                 isLoadingContract ? 'Loading...' : 'Bet'}
           </button>
         </div>
 

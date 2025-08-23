@@ -12,6 +12,7 @@ function GameArea({
   onPlaceBet,
   isConnected,
   isLoading,
+  isLoadingContract,
   userWinChance,
   userBetTotal,
   contractState,
@@ -125,6 +126,7 @@ function GameArea({
 
   // Memoize game status to prevent text flicker
   const gameStatus = useMemo(() => {
+    if (isLoadingContract) return "🔄 Loading jackpot data...";
     if (!memoizedValues.isContractActive) return "⏸️ Jackpot is paused";
     if (waitingForWinner) return "🎯 Selecting winner...";
     if (!isLive) return adminInfo?.isAutoManaged ? "🤖 Auto-starting next round..." : "Waiting for next round...";
@@ -133,7 +135,7 @@ function GameArea({
     if (memoizedValues.displayTimer <= 5 && memoizedValues.totalPlayers > 0) return "⏰ Get ready to spin!";
     if (memoizedValues.totalPlayers === 0) return "💰 Place your bets to start!";
     return `💰 ${memoizedValues.totalPlayers} player${memoizedValues.totalPlayers !== 1 ? 's' : ''} betting...`;
-  }, [waitingForWinner, isLive, winner, isSpinning, adminInfo?.isAutoManaged, memoizedValues]);
+  }, [isLoadingContract, waitingForWinner, isLive, winner, isSpinning, adminInfo?.isAutoManaged, memoizedValues]);
 
   const { displayTimer, displayRound, totalPlayers, totalJackpotValue, winnerPrizeValue } = memoizedValues;
 
