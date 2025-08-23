@@ -1,0 +1,73 @@
+.online-indicator {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+}
+
+.indicator-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.indicator-content:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.wifi-icon {
+  transition: all 0.3s ease;
+}
+
+.wifi-icon.connected {
+  color: #22c55e;
+}
+
+.wifi-icon.disconnected {
+  color: #ef4444;
+}
+
+.online-count {
+  color: #22c55e;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.status-text {
+  color: #ef4444;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .online-indicator {
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .indicator-content {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  
+  .online-count,
+  .status-text {
+    font-size: 10px;
+  }
+}

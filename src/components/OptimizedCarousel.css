@@ -1,0 +1,293 @@
+/* Optimized Carousel Container */
+.optimized-carousel-container {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #141414;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Carousel Header */
+.carousel-header {
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  border-bottom: 1px solid #333;
+  text-align: center;
+}
+
+.carousel-header h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.winner-announcement {
+  margin-top: 8px;
+  color: #22c55e;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Carousel Viewport */
+.carousel-viewport {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.05) 10%, 
+    rgba(255, 255, 255, 0.05) 90%, 
+    transparent 100%
+  );
+}
+
+/* Roulette Wheel - Hardware Accelerated */
+.roulette-wheel {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  transform: translate3d(0px, 0px, 0px);
+  will-change: transform;
+  transition: transform 0.1s linear;
+}
+
+/* Spinning Animation - Pure CSS */
+.roulette-wheel.spinning {
+  transition: transform 5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Roulette Row */
+.roulette-row {
+  display: flex;
+  height: 100%;
+  gap: 20px;
+  padding: 0 10px;
+}
+
+/* Roulette Card - Optimized Structure */
+.roulette-card {
+  flex-shrink: 0;
+  width: 166px;
+  height: 180px;
+  background: linear-gradient(135deg, #23232e 0%, #1a1a1a 100%);
+  border-radius: 12px;
+  border: 1px solid #333;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.roulette-card.active {
+  background: linear-gradient(135deg, #2a2e37 0%, #1f2937 100%);
+  border-color: #4f46e5;
+  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.3);
+}
+
+.roulette-card.inactive {
+  opacity: 0.6;
+  filter: grayscale(0.3);
+}
+
+.roulette-card.waiting {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  border-color: #444;
+}
+
+/* Card Content */
+.card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 16px;
+  position: relative;
+}
+
+/* Avatar Container */
+.avatar-container {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 12px;
+  position: relative;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.player-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Player Info */
+.player-info {
+  text-align: center;
+  width: 100%;
+}
+
+.player-name {
+  margin: 0 0 8px 0;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+/* Bet Info */
+.bet-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.coin-icon {
+  width: 20px;
+  height: 20px;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23fbbf24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>') no-repeat center;
+  background-size: contain;
+  transition: filter 0.3s ease;
+}
+
+.coin-icon.grayscale {
+  filter: grayscale(1) brightness(0.5);
+}
+
+.bet-amount {
+  color: #fbbf24;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Center Indicator */
+.center-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.indicator-arrow {
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 20px solid #22c55e;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Winner Highlight Animation */
+.roulette-card.winner-highlight {
+  animation: winner-pulse 2s ease-in-out infinite;
+}
+
+@keyframes winner-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(34, 197, 94, 0.8);
+    transform: scale(1.05);
+  }
+}
+
+/* Performance Optimizations */
+.roulette-wheel * {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.roulette-card {
+  contain: layout style paint;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .optimized-carousel-container {
+    max-width: 100%;
+    border-radius: 8px;
+  }
+  
+  .carousel-viewport {
+    height: 160px;
+  }
+  
+  .roulette-card {
+    width: 140px;
+    height: 150px;
+  }
+  
+  .avatar-container {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .player-name {
+    font-size: 12px;
+  }
+  
+  .bet-amount {
+    font-size: 14px;
+  }
+}
+
+/* Smooth Scrolling */
+.roulette-wheel {
+  scroll-behavior: smooth;
+}
+
+/* Focus States for Accessibility */
+.roulette-card:focus {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+/* Loading State */
+.roulette-wheel.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Idle Movement */
+.roulette-wheel.idle {
+  animation: idle-movement 20s linear infinite;
+}
+
+@keyframes idle-movement {
+  0% {
+    transform: translate3d(0px, 0px, 0px);
+  }
+  100% {
+    transform: translate3d(-1000px, 0px, 0px);
+  }
+}

@@ -205,7 +205,7 @@ const AdminPanel = ({
           <li><strong>End Jackpot:</strong> Closes betting, selects winner, and distributes prize</li>
           <li><strong>Winner Selection:</strong> Uses weighted random based on bet amounts</li>
           <li><strong>Fees:</strong> 5% automatically sent to admin wallet</li>
-          <li><strong>Minimum Bet:</strong> 0.11 TON (gas fees deducted automatically)</li>
+                          <li><strong>Minimum Bet:</strong> 0.05 TON (0.05 TON fee added to transaction)</li>
         </ul>
       </div>
     </div>

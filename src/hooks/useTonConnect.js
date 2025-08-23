@@ -183,9 +183,35 @@ const useTonConnect = () => {
 
   // Register user with backend when wallet connects
   useEffect(() => {
-    if (isConnected && address && user) {
+    if (isConnected && address) {
       console.log('👤 Wallet connected, registering user with backend...');
-      userService.registerUser(address, user);
+      
+      // Always register user, even if no Telegram data
+      const userData = user || {
+        username: `Player_${address.slice(-4)}`,
+        firstName: '',
+        lastName: '',
+        id: null
+      };
+      
+      userService.registerUser(address, userData, user?.referralCode || undefined);
+      
+      // Backup: Ensure user is registered in database for referral system
+      try {
+        const { backendApi } = require('../services/backendApi');
+        backendApi.fetchJson('/api/user/ensure-registered', {
+          method: 'POST',
+          body: JSON.stringify({ address })
+        }).then(response => {
+          if (response.success) {
+            console.log('✅ Backup user registration successful');
+          }
+        }).catch(error => {
+          console.error('❌ Backup user registration failed:', error);
+        });
+      } catch (error) {
+        console.error('❌ Error calling backup registration:', error);
+      }
     }
   }, [isConnected, address, user]);
 

@@ -1,7 +1,7 @@
 // Backend API service for frontend
 class BackendApiService {
   constructor() {
-    this.baseUrl = "http://localhost:5002";
+    this.baseUrl = "https://hk-seeks-jet-session.trycloudflare.com";
   }
 
   async fetchJson(endpoint, options = {}) {
@@ -68,6 +68,21 @@ class BackendApiService {
   // Health check
   async getHealth() {
     return this.fetchJson('/api/health');
+  }
+
+  // Stats endpoints
+  async getStatsSummary() {
+    return this.fetchJson('/api/stats/summary');
+  }
+
+  async getLeaderboard({ by = 'prize', limit = 10 } = {}) {
+    const params = new URLSearchParams({ by, limit });
+    return this.fetchJson(`/api/stats/leaderboard?${params.toString()}`);
+  }
+
+  async getRecentGames(limit = 10) {
+    const params = new URLSearchParams({ limit });
+    return this.fetchJson(`/api/stats/recent-games?${params.toString()}`);
   }
 }
 

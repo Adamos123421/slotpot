@@ -24,9 +24,50 @@ class ContractService {
     this.bettorsCacheExpiry = 10000; // Cache bettors for 10 seconds (shorter than contract state)
     this.lastBettorsCacheTime = 0;
     
+        // Username dictionary - stores usernames by address when users place bets
+    this.usernameDict = new Map();
+    
     console.log('📄 Contract service initialized');
     console.log('🔗 Contract address:', this.contractAddress.toString());
     console.log(`🚦 Request delay: ${this.requestDelay}ms`);
+  }
+
+  // Save username and photo when user places a bet
+  saveUsername(address, username, photoUrl = null) {
+    if (!address || !username) return;
+    const normalizedAddress = address.toString();
+    this.usernameDict.set(normalizedAddress, {
+      username: username,
+      photoUrl: photoUrl
+    });
+    console.log(`💾 Saved user data for ${normalizedAddress.slice(0,8)}... -> username: ${username}, photo: ${photoUrl ? 'yes' : 'no'}`);
+  }
+
+  // Get username from our dictionary (no database calls)
+  getUsername(address) {
+    if (!address) return null;
+    const normalizedAddress = address.toString();
+    const userData = this.usernameDict.get(normalizedAddress);
+    if (userData && userData.username) {
+      console.log(`👤 Found username in dict: ${normalizedAddress.slice(0,8)}... -> ${userData.username}`);
+      return userData.username;
+    }
+    // Fallback to address suffix if no username saved
+    const fallbackUsername = `Player_${normalizedAddress.slice(-4)}`;
+    console.log(`👤 No username in dict for ${normalizedAddress.slice(0,8)}..., using fallback: ${fallbackUsername}`);
+    return fallbackUsername;
+  }
+
+  // Get photo URL from our dictionary
+  getPhotoUrl(address) {
+    if (!address) return null;
+    const normalizedAddress = address.toString();
+    const userData = this.usernameDict.get(normalizedAddress);
+    if (userData && userData.photoUrl) {
+      return userData.photoUrl;
+    }
+    // Fallback to robohash
+    return `https://robohash.org/${normalizedAddress}.png?size=100x100`;
   }
 
   // Sleep function for delays
@@ -382,8 +423,9 @@ class ContractService {
   // Build transaction for bet placement (for frontend) - no API calls needed
   buildBetTransaction(betAmount, fromAddress) {
     try {
-      // Convert bet amount to nanotons
-      const nanotons = Math.floor(betAmount * 1000000000);
+      // Add 0.05 TON fee to the bet amount for the transaction
+      const totalAmount = betAmount + 0.05;
+      const totalNanotons = Math.floor(totalAmount * 1000000000);
       
       // Create PlaceBet message with correct op code (0x03)
       const body = beginCell()
@@ -396,7 +438,7 @@ class ContractService {
         messages: [
           {
             address: this.contractAddress.toString(),
-            amount: nanotons.toString(),
+            amount: totalNanotons.toString(),
             payload: body.toBoc().toString('base64') // Include the PlaceBet message
           }
         ]
@@ -434,7 +476,12 @@ class ContractService {
       fullAddress: bettorData.address,
       amount: parseFloat(bettorData.amount),
       username: bettorData.username,
+      displayName: bettorData.username,
+      avatar: bettorData.avatar || `https://robohash.org/${bettorData.address}.png?size=100x100`,
       telegramPhotoUrl: bettorData.avatar,
+      telegramId: bettorData.telegramId,
+      firstName: bettorData.firstName,
+      lastName: bettorData.lastName,
       timestamp: Date.now(),
       isSimulated: true
     };
@@ -602,13 +649,21 @@ class ContractService {
               
               console.log(`🔍 Found bettor: ${address.toString()} -> ${formattedAmount} TON`);
               
-              const userInfo = userService.getUserInfo(address.toString());
+              // Use our username dictionary instead of calling userService
+              const username = this.getUsername(address.toString());
+              const photoUrl = this.getPhotoUrl(address.toString());
+              console.log(`👤 CONTRACT: Getting user data for ${address.toString()}: username="${username}", photo="${photoUrl ? 'yes' : 'no'}"`);
               bettors.push({
                 address: this.formatAddress(address),
                 fullAddress: address.toString(),
                 amount: formattedAmount,
-                username: userInfo.username,
-                telegramPhotoUrl: userInfo.telegramPhotoUrl,
+                username: username,
+                displayName: username,
+                avatar: photoUrl,
+                telegramPhotoUrl: photoUrl,
+                telegramId: null,
+                firstName: '',
+                lastName: '',
                 timestamp: Date.now()
               });
             }

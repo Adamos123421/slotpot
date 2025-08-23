@@ -257,10 +257,10 @@
   flex: 1;
 }
 
-.winner-address {
-  font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
-  color: #e5e7eb;
+.winner-name {
+  font-size: 1rem;
+  color: #ffffff;
+  font-weight: 600;
   margin-bottom: 4px;
 }
 

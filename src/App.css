@@ -6,31 +6,30 @@
 }
 
 html, body {
-  height: 100%;
   width: 100%;
-  overflow-x: hidden;
+  height: 100%;
+  overflow: hidden; /* Prevent any scrolling at document level */
   /* Telegram WebApp specific */
+  user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
+  /* Remove position fixed from html/body */
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-  background: #0a0a0f;
-  color: white;
-  /* Full viewport for Telegram */
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  background: #000000;
+  color: #ffffff;
+  /* Telegram WebApp specific scroll prevention */
+  overscroll-behavior: none;
+  -webkit-overscroll-behavior: none;
 }
 
 /* Telegram Full-Screen Mode Enhancements */
 html.telegram-fullscreen body {
   /* Enhanced full-screen styling */
-  background: #000008;
+  background: #000000;
 }
 
 html.telegram-fullscreen .app {
@@ -45,15 +44,12 @@ html.telegram-fullscreen .app {
   height: var(--tg-viewport-height, 100dvh); /* Telegram viewport height */
   width: 100vw;
   width: var(--tg-viewport-width, 100vw); /* Telegram viewport width */
-  background: linear-gradient(135deg, #0a0a0f 0%, #111827 25%, #1e293b 50%, #0f172a 75%, #0a0a0f 100%);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
+  background: #000000;
+  position: relative; /* Change back to relative */
+  overflow: hidden; /* No scrolling at app level */
   min-height: -webkit-fill-available; /* iOS Safari compatibility */
   transition: all 0.3s ease;
+  touch-action: pan-y; /* Allow only vertical pan within app */
 }
 
 .app::before {
@@ -84,22 +80,314 @@ html.telegram-fullscreen .app::before {
 .app-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  height: 100dvh; /* Dynamic viewport height */
-  height: var(--tg-viewport-height, 100dvh); /* Telegram viewport height */
+  height: 100%;
   width: 100%;
-  /* Remove max-width for full screen Telegram experience */
   margin: 0;
   position: relative;
   z-index: 1;
   background: rgba(10, 10, 15, 0.8);
-  /* backdrop-filter: blur(4px); */ /* Removed for performance */
+  overflow: hidden; /* Contain all scrolling within */
   transition: all 0.3s ease;
 }
 
-html.telegram-fullscreen .app-container {
-  /* backdrop-filter: blur(4px); */ /* Removed for performance */
+/* Page Header - now scrollable with content */
+.page-header {
+  background: rgba(0, 0, 0, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  width: 100%;
+  margin-bottom: 0;
 }
+
+/* Add top margin for fullscreen mode */
+html.telegram-fullscreen .page-header {
+  margin-top: 70px;
+}
+
+/* Online indicator is now relative positioned */
+.jackpot-container {
+  padding-top: 0;
+  position: relative;
+}
+
+/* Main content area - properly contained scrolling */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  position: relative;
+  margin-bottom: 80px; /* Space for fixed navbar */
+  touch-action: pan-y; /* Only allow vertical scrolling */
+  overscroll-behavior: contain; /* Prevent scroll chaining */
+  scroll-behavior: smooth;
+}
+
+/* Tab containers - full width */
+.profile-container,
+.jackpot-container,
+.referrals-container {
+  width: 100%;
+  min-height: calc(100vh - 80px); /* Only account for navbar */
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure consistent spacing for all child elements in containers */
+.profile-container > *,
+.jackpot-container > *,
+.referrals-container > * {
+  margin: 16px;
+}
+
+/* Header should have no margin since it's at the top */
+.profile-container > .page-header,
+.jackpot-container > .page-header,
+.referrals-container > .page-header {
+  margin: 0;
+}
+
+/* Recent winners in jackpot page - inherits margin from parent rule */
+.jackpot-container .recent-winners-section {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Bets Deflate Section */
+.bets-deflate-section {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 16px;
+}
+
+.bets-deflate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.bets-deflate-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.round-info {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.bets-deflate-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.bet-deflate-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px;
+  transition: all 0.2s ease;
+}
+
+.bet-deflate-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.bet-deflate-avatar {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+}
+
+.avatar-icon svg {
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
+}
+
+.avatar-count {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  background: #10b981;
+  color: white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.bet-deflate-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.bet-deflate-username {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bet-deflate-amount {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.bet-deflate-ton-icon {
+  filter: drop-shadow(0 0 6px rgba(0, 152, 234, 0.6));
+}
+
+.bet-deflate-usd {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-left: 4px;
+}
+
+.bet-deflate-chance {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.chance-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chance-label svg {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.chance-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.bet-deflate-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.empty-icon {
+  margin-bottom: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.empty-icon svg {
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.2));
+}
+
+.empty-text {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.empty-subtext {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Loading spinner animation */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Make all Lucide icons white */
+svg[data-lucide] {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* Specific icon containers */
+.stat-icon svg,
+.loading-spinner svg,
+.loading-spinner-big svg,
+.section-title svg,
+.header-content svg,
+.game-stats svg,
+.payout-info svg,
+.jackpot-header svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* Performance optimizations */
+.app,
+.app-container,
+.main-content,
+.header-section,
+.mobile-navbar {
+  will-change: transform; /* Optimize for animations */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Reduce motion for better performance */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* removed: empty ruleset placeholder */
 
 /* Full-Screen Mode Container */
 html.telegram-fullscreen .app-container {
@@ -246,6 +534,7 @@ html.telegram-fullscreen .header-section {
   margin-bottom: 0;
   width: 100%;
   gap: 8px; /* Add gap between sections */
+  padding: 16px 20px; /* Better padding for scrollable header */
 }
 
 .logo-section {
@@ -260,7 +549,7 @@ html.telegram-fullscreen .header-section {
   width: 28px;
   height: 28px;
   background: linear-gradient(135deg, #8b5cf6 0%, #9333ea 100%);
-  border-radius: 8px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -272,6 +561,13 @@ html.telegram-fullscreen .header-section {
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+}
+
+.logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .logo-icon::before {
@@ -452,6 +748,8 @@ html.telegram-fullscreen .balance-amount {
   transition: all 0.3s ease;
 }
 
+/* Profile container styling now handled by main container rules above */
+
 /* Full-Screen Enhancements for Main Content */
 html.telegram-fullscreen .main-content {
   gap: 20px;
@@ -557,17 +855,10 @@ html.telegram-fullscreen .jackpot-value-display {
 
 /* Betting Section */
 .betting-section {
-  background: 
-    linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%),
-    rgba(15, 23, 42, 0.8);
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 16px;
-  padding: 20px 16px;
-  border: 1px solid rgba(139, 92, 246, 0.25);
-  /* backdrop-filter: blur(4px); */ /* Removed for performance */
-  box-shadow: 
-    0 4px 20px rgba(0, 0, 0, 0.4),
-    0 2px 10px rgba(139, 92, 246, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .bet-input-section {
@@ -579,51 +870,33 @@ html.telegram-fullscreen .jackpot-value-display {
 
 .bet-amount-input {
   flex: 1;
-  background: 
-    linear-gradient(135deg, rgba(8, 12, 20, 0.95) 0%, rgba(20, 25, 35, 0.9) 100%),
-    rgba(8, 12, 20, 0.8);
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 16px;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 500;
   color: white;
-  font-family: 'SF Mono', Monaco, monospace;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
   text-align: center;
-  /* backdrop-filter: blur(4px); */ /* Removed for performance */
-  box-shadow: 
-    0 2px 10px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
 }
 
 .bet-amount-input:focus {
   outline: none;
-  border-color: rgba(139, 92, 246, 0.6);
-  box-shadow: 
-    0 0 0 3px rgba(139, 92, 246, 0.15),
-    0 6px 24px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .bet-increment-btn {
-  background: 
-    linear-gradient(135deg, rgba(15, 20, 30, 0.95) 0%, rgba(25, 30, 40, 0.9) 100%),
-    rgba(15, 20, 30, 0.8);
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 16px 18px;
   color: rgba(255, 255, 255, 0.9);
-  font-weight: 700;
-  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  font-weight: 500;
+  transition: all 0.3s ease;
   cursor: pointer;
-  /* backdrop-filter: blur(4px); */ /* Removed for performance */
-  box-shadow: 
-    0 2px 10px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  position: relative;
-  overflow: hidden;
 }
 
 .bet-increment-btn::before {
@@ -631,35 +904,21 @@ html.telegram-fullscreen .jackpot-value-display {
 }
 
 .bet-increment-btn:hover {
-  background: 
-    linear-gradient(145deg, rgba(20, 23, 31, 0.95), rgba(30, 33, 41, 0.9)),
-    radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
+  background: rgba(255, 255, 255, 0.08);
   color: white;
-  transform: translateY(-1px);
-  box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .bet-button {
   width: 100%;
-  background: 
-    linear-gradient(135deg, #8b5cf6 0%, #9333ea 100%),
-    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-      border: 1px solid rgba(139, 92, 246, 0.8);
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 16px;
   padding: 16px;
-  color: white;
+  color: #000000;
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-  box-shadow: 
-    0 4px 16px rgba(139, 92, 246, 0.3);
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  position: relative;
-  overflow: hidden;
-  /* backdrop-filter: blur(4px); */ /* Removed for performance */
+  transition: all 0.3s ease;
 }
 
 .bet-button::before {
@@ -667,16 +926,37 @@ html.telegram-fullscreen .jackpot-value-display {
 }
 
 .bet-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 
-    0 6px 20px rgba(139, 92, 246, 0.4);
-  background: 
-    linear-gradient(135deg, #a855f7 0%, #7c3aed 100%),
-    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .bet-button:active {
   transform: translateY(0);
+}
+
+/* Loading animation for bet button */
+.bet-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.bet-button:disabled::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid transparent;
+  border-top: 2px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Stats Grid */
@@ -684,7 +964,7 @@ html.telegram-fullscreen .jackpot-value-display {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  margin: 20px 0;
+  margin: 16px 0;
   padding: 0 4px;
 }
 
@@ -697,39 +977,24 @@ html.telegram-fullscreen .jackpot-value-display {
 
 /* Jackpot card - special styling */
 .stat-card.jackpot-card {
-  background: 
-    linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(168, 85, 247, 0.15) 100%),
-    rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(139, 92, 246, 0.4);
-  box-shadow: 
-    0 4px 20px rgba(139, 92, 246, 0.15),
-    0 2px 10px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   position: relative;
 }
 
 .stat-card.jackpot-card .stat-value {
-  color: #a855f7;
+  color: #ffffff;
   font-size: 18px;
   font-weight: 800;
 }
 
 .stat-card {
-  background: 
-    linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%),
-    rgba(15, 23, 42, 0.8);
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 12px;
   padding: 16px 12px;
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  /* backdrop-filter: blur(4px); */ /* Removed for performance */
+  border: 1px solid rgba(255, 255, 255, 0.1);
   text-align: center;
-  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-  box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.4),
-    0 2px 8px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  position: relative;
-  overflow: hidden;
+  transition: all 0.3s ease;
 }
 
 .stat-card::before {
@@ -737,13 +1002,8 @@ html.telegram-fullscreen .jackpot-value-display {
 }
 
 .stat-card:hover {
-  border-color: rgba(139, 92, 246, 0.4);
-  transform: translateY(-2px);
-  box-shadow: 
-    0 8px 25px rgba(0, 0, 0, 0.5),
-    0 4px 15px rgba(139, 92, 246, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 @keyframes statCardShine {
@@ -753,9 +1013,9 @@ html.telegram-fullscreen .jackpot-value-display {
 
 .stat-value {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   color: white;
-  font-family: 'SF Mono', Monaco, monospace;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
   margin-bottom: 4px;
   display: flex;
   align-items: center;
@@ -845,12 +1105,12 @@ html.telegram-fullscreen .jackpot-value-display {
 }
 
 .carousel-header.analyzing h3 {
-  color: #f59e0b;
+  color: #ffffff;
   animation: analyzeTextPulse 1s ease-in-out infinite;
   }
   
 .carousel-header.winner h3 {
-  color: #10b981;
+  color: #ffffff;
   animation: winnerTextGlow 2s ease-in-out infinite;
 }
 
@@ -897,7 +1157,7 @@ html.telegram-fullscreen .jackpot-value-display {
   z-index: 100;
   pointer-events: none;
   font-size: 28px;
-  color: #ff6b35;
+  color: #ffffff;
   filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.6));
   /* animation: arrowPulse 2s ease-in-out infinite; */ /* Disabled for performance */
 }
@@ -994,13 +1254,10 @@ html.telegram-fullscreen .jackpot-value-display {
   transition: none !important;
   }
   
-.carousel-track.sliding {
-  /* animation: slideRightToLeft 3s ease-in-out; */ /* Disabled - using JS animation */
-  }
-  
+.carousel-track.sliding,
 .carousel-track.analyzing {
-  /* animation: analyzeSpinFast 1s linear infinite; */ /* Disabled - using JS animation */
-  }
+  transition: none !important; /* state classes - JS controls motion */
+}
 
 /* Winner slow-down animations for dramatic effect */
 .carousel-track.slowing-down {
@@ -1063,8 +1320,8 @@ html.telegram-fullscreen .jackpot-value-display {
 /* Individual Carousel Cards */
 .carousel-card {
   min-width: 110px;
-  background: rgba(15, 15, 25, 0.8);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   padding: 10px;
   display: flex;
@@ -1073,7 +1330,6 @@ html.telegram-fullscreen .jackpot-value-display {
   gap: 6px;
   transition: all 0.3s ease;
   position: relative;
-  /* backdrop-filter: blur(20px); */ /* Removed for performance */
   flex-shrink: 0;
 }
 
@@ -1082,19 +1338,16 @@ html.telegram-fullscreen .jackpot-value-display {
 }
 
 .carousel-card.active {
-  border-color: rgba(139, 92, 246, 0.4);
-  background: rgba(139, 92, 246, 0.08);
-  box-shadow: 
-    0 0 20px rgba(139, 92, 246, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
   /* animation: cardPulse 2s ease-in-out infinite; */ /* Disabled for performance */
 }
 
 .carousel-card.waiting {
   opacity: 0.6;
   border-style: dashed;
-  border-color: rgba(139, 92, 246, 0.1);
-  background: rgba(20, 20, 30, 0.4);
+  border-color: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.01);
   animation: waitingFloat 3s ease-in-out infinite;
 }
 
@@ -1218,49 +1471,41 @@ html.telegram-fullscreen .jackpot-value-display {
 
 /* Winner Card Styling - CLEAN AND FOCUSED */
 .carousel-card.winner {
-  border-color: rgba(34, 197, 94, 0.9) !important;
-  background: rgba(34, 197, 94, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
   animation: cleanWinnerGlow 1.5s ease-in-out infinite;
   position: relative;
   z-index: 15;
   transform: scale(1.1);
-  box-shadow: 
-    0 0 40px rgba(34, 197, 94, 0.7),
-    0 0 80px rgba(34, 197, 94, 0.4),
-    0 4px 20px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .carousel-card.winner .mobile-player-name {
-  color: #10b981;
+  color: #ffffff;
   font-weight: 700;
-  text-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
 }
 
 .carousel-card.winner .mobile-player-bet {
-  border-color: rgba(34, 197, 94, 0.6);
-  background: rgba(34, 197, 94, 0.2);
-  color: #10b981;
-  box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 
 .carousel-card.winner .generated-avatar {
-  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+  background: rgba(255, 255, 255, 0.2);
   animation: cleanWinnerGlow 2s infinite ease-in-out;
 }
 
 .winner-prize {
   font-size: 10px;
-  color: #10b981;
+  color: #ffffff;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   text-align: center;
   margin-top: 4px;
   padding: 3px 6px;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 6px;
   animation: prizeGlow 2s ease-in-out infinite;
   font-family: 'SF Mono', Monaco, monospace;
@@ -1280,8 +1525,8 @@ html.telegram-fullscreen .jackpot-value-display {
 @keyframes cleanWinnerGlow {
   0%, 100% {
     box-shadow: 
-      0 0 40px rgba(34, 197, 94, 0.7),
-      0 0 80px rgba(34, 197, 94, 0.4),
+      0 0 40px rgba(255, 255, 255, 0.3),
+      0 0 80px rgba(255, 255, 255, 0.2),
       0 4px 20px rgba(0, 0, 0, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.4);
     transform: scale(1.1);
@@ -1318,20 +1563,16 @@ html.telegram-fullscreen .jackpot-value-display {
 
 /* Mobile Navigation Bar */
 .mobile-navbar {
-  background: 
-    linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.95) 100%),
-    rgba(15, 23, 42, 0.9);
-  border-top: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(0, 0, 0, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding: 8px 12px 12px;
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 1000;
-  box-shadow: 
-    0 -8px 32px rgba(0, 0, 0, 0.4),
-    0 -4px 16px rgba(139, 92, 246, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .navbar-items {
@@ -1358,19 +1599,12 @@ html.telegram-fullscreen .jackpot-value-display {
 }
 
 .navbar-item:hover {
-  background: rgba(139, 92, 246, 0.1);
-  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .navbar-item.active {
-  background: 
-    linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(168, 85, 247, 0.15) 100%),
-    rgba(139, 92, 246, 0.1);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 
-    0 4px 15px rgba(139, 92, 246, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .navbar-item.active::before {
@@ -1381,20 +1615,26 @@ html.telegram-fullscreen .jackpot-value-display {
   transform: translateX(-50%);
   width: 20px;
   height: 2px;
-  background: linear-gradient(90deg, #8b5cf6, #a855f7);
+  background: #ffffff;
   border-radius: 2px;
 }
 
 .navbar-icon {
   font-size: 20px;
   transition: all 0.3s ease;
-  filter: grayscale(100%) brightness(0.7);
+  opacity: 0.6;
 }
 
 .navbar-item:hover .navbar-icon,
 .navbar-item.active .navbar-icon {
-  filter: none;
+  opacity: 1;
   transform: scale(1.1);
+}
+
+/* Ensure navbar icons are always white */
+.navbar-icon svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 .navbar-label {
@@ -1459,7 +1699,7 @@ body[data-telegram="true"] .carousel-target-arrow {
   z-index: 100;
   pointer-events: none;
   font-size: 28px;
-  color: #ff6b35;
+  color: #ffffff;
   filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.6));
   /* animation: arrowPulse 2s ease-in-out infinite; */ /* Disabled for performance */
   /* Force hardware acceleration for smoother animations in Telegram */
@@ -1518,7 +1758,7 @@ body[data-telegram="true"] .carousel-track {
   z-index: 100;
   pointer-events: none;
   font-size: 28px;
-  color: #ff6b35;
+  color: #ffffff;
   filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.6));
   /* animation: arrowPulse 2s ease-in-out infinite; */ /* Disabled for performance */
 }
@@ -1532,10 +1772,9 @@ body[data-telegram="true"] .carousel-track {
   margin: 0 auto;
   overflow: hidden;
   height: 150px;
-  background: rgba(20, 20, 30, 0.6);
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 12px;
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  /* backdrop-filter: blur(20px); */ /* Removed for performance */
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .roulette-selector {
@@ -1573,14 +1812,8 @@ body[data-telegram="true"] .carousel-track {
   font-size: 0.9em;
   overflow: hidden;
   flex-shrink: 0;
-  background: 
-    linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%),
-    rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  box-shadow: 
-    0 4px 20px rgba(0, 0, 0, 0.4),
-    0 2px 10px rgba(139, 92, 246, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
 }
 
@@ -1829,34 +2062,23 @@ body[data-telegram="true"] .carousel-track {
   align-items: center;
   justify-content: center;
   padding: 16px 12px;
-  background: 
-    linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%),
-    rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-style: dashed;
   position: relative;
   border-radius: 16px;
-  box-shadow: 
-    0 4px 20px rgba(0, 0, 0, 0.4),
-    0 2px 10px rgba(139, 92, 246, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   overflow: hidden;
 }
 
 @keyframes tonWaitingPulse {
   0%, 100% {
-    border-color: rgba(139, 92, 246, 0.3);
-    box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.3),
-      0 4px 16px rgba(139, 92, 246, 0.1),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.05);
+    opacity: 0.5;
   }
   50% {
-    border-color: rgba(139, 92, 246, 0.5);
-    box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.3),
-      0 4px 16px rgba(139, 92, 246, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.1);
+    opacity: 0.7;
   }
 }
 
@@ -1866,40 +2088,33 @@ body[data-telegram="true"] .carousel-track {
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 10px;
-  background: 
-    linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%),
-    rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 24px;
-  font-weight: bold;
-  box-shadow: 
-    0 2px 10px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  font-weight: 400;
   transition: all 0.3s ease;
 }
 
 .waiting-card .waiting-text {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.6);
   margin: 6px 0;
   max-width: 85px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: 600;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  font-weight: 500;
   line-height: 1.2;
 }
 
 .waiting-card .waiting-amount {
   font-size: 14px;
-  font-weight: 700;
-  color: #e0e0e0;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1941,13 +2156,13 @@ body[data-telegram="true"] .carousel-track {
   justify-content: center;
 }
 
-/* Winner Highlight Effect - Green with Crown */
+/* Winner Highlight Effect - Bright Green */
 .roulette-card.winner-highlight .player-card {
-  background: linear-gradient(145deg, #2d5a2d 0%, #1a4a1a 100%) !important;
-  border: 3px solid #4ade80 !important;
+  background: linear-gradient(145deg, #22c55e 0%, #16a34a 100%) !important;
+  border: 3px solid #ffffff !important;
   box-shadow: 
-    0 0 20px rgba(74, 222, 128, 0.5),
-    0 0 40px rgba(74, 222, 128, 0.3),
+    0 0 20px rgba(34, 197, 94, 0.4),
+    0 0 40px rgba(34, 197, 94, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
   transform: scale(1.05) !important;
   position: relative !important;
@@ -1957,26 +2172,20 @@ body[data-telegram="true"] .carousel-track {
 @keyframes winnerPulse {
   0%, 100% {
     box-shadow: 
-      0 0 20px rgba(74, 222, 128, 0.5),
-      0 0 40px rgba(74, 222, 128, 0.3),
+      0 0 20px rgba(34, 197, 94, 0.4),
+      0 0 40px rgba(34, 197, 94, 0.2),
       inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
   50% {
     box-shadow: 
-      0 0 30px rgba(74, 222, 128, 0.8),
-      0 0 60px rgba(74, 222, 128, 0.5),
+      0 0 30px rgba(34, 197, 94, 0.6),
+      0 0 60px rgba(34, 197, 94, 0.3),
       inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
 }
 
 .roulette-card.winner-highlight .player-card::after {
-  content: '👑';
-  position: absolute;
-  top: -15px;
-  right: -10px;
-  font-size: 20px;
-  z-index: 11;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  display: none; /* Remove crown emoji */
 }
 
 .roulette-card.winner-highlight .player-name {
@@ -1986,26 +2195,24 @@ body[data-telegram="true"] .carousel-track {
 }
 
 .roulette-card.winner-highlight .bet-amount {
-  color: #4ade80 !important;
+  color: #ffffff !important;
   font-weight: bold !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 .roulette-card.winner-highlight .avatar-container {
-  border: 3px solid #4ade80 !important;
-  box-shadow: 0 0 15px rgba(74, 222, 128, 0.6) !important;
+  border: 3px solid #ffffff !important;
 }
 
 .roulette-card.winner-highlight .bet-info {
-  background: rgba(74, 222, 128, 0.2) !important;
-  border: 1px solid #4ade80 !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
 .roulette-card.winner-highlight .bet-info::before {
   content: '◊' !important;
-  color: #4ade80 !important;
+  color: #ffffff !important;
   font-size: 16px !important;
-  text-shadow: 0 0 12px rgba(74, 222, 128, 0.8) !important;
+
 }
 
 /* Responsive adjustments for roulette */

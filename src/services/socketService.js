@@ -24,9 +24,9 @@ class SocketService {
       return;
     }
 
-    const socketUrl = "http://localhost:5002";
+    const socketUrl = "https://hk-seeks-jet-session.trycloudflare.com";
     
-    console.log('🔌 Creating new socket connection to:', socketUrl);
+    // Creating socket connection
     this.socket = io(socketUrl, {
       reconnection: true,
       reconnectionDelay: 1000,
@@ -43,7 +43,7 @@ class SocketService {
     if (!this.socket) return;
 
     this.socket.on('connect', () => {
-      console.log('🔌 Connected to socket server');
+      // Connected to socket server
       this.isConnected = true;
       this.reconnectAttempts = 0;
       
@@ -54,7 +54,7 @@ class SocketService {
     });
 
     this.socket.on('disconnect', () => {
-      console.log('🔌 Disconnected from socket server');
+      // Disconnected from socket server
       this.isConnected = false;
     });
 
@@ -70,8 +70,6 @@ class SocketService {
 
     // Game specific events
     this.socket.on('gameState', (data) => {
-      console.log('🎮 Received game state:', data);
-      
       this.gameState = {
         ...this.gameState,
         ...data
@@ -79,7 +77,6 @@ class SocketService {
       
       // If joining when timer is 0 and no winner yet, show waiting state
       if (data.timeRemaining === 0 && !data.lastWinner) {
-        console.log('⏰ User joined during winner selection - showing waiting state');
         this.gameState.isWaitingForWinner = true;
         this.emit('waitingForWinner', true);
       }
@@ -104,21 +101,17 @@ class SocketService {
     });
 
     this.socket.on('newBet', (data) => {
-      console.log('💰 New bet received:', data);
       // Update local game state with new bet
       if (!this.gameState.bettors.find(b => b.address === data.address)) {
         this.gameState.bettors.push(data);
       }
-      this.gameState.jackpotValue += (parseFloat(data.amount) - 0.5); // Account for fee
+              this.gameState.jackpotValue += (parseFloat(data.amount) - 0.05); // Account for fee
       this.emit('newBet', data);
     });
 
     this.socket.on('timer', (data) => {
-      console.log('⏰ Timer update:', data);
-      
       // SAFETY: Ensure data exists and has required properties
       if (!data || typeof data !== 'object') {
-        console.warn('⚠️ Invalid timer data received:', data);
         return;
       }
       
@@ -131,7 +124,6 @@ class SocketService {
       
       // If timer hits 0 and we weren't already waiting, set waiting state
       if (timeRemaining === 0 && !this.gameState.isWaitingForWinner) {
-        console.log('⏰ Timer ended - setting waiting for winner state');
         this.gameState.isWaitingForWinner = true;
         this.emit('waitingForWinner', true);
       }
@@ -205,7 +197,7 @@ class SocketService {
 
     // Handle comprehensive game data updates
     this.socket.on('fullGameUpdate', (data) => {
-      console.log('🎮 Full game data update:', data);
+      //console.log('🎮 Full game data update:', data);
       this.gameState = {
         ...this.gameState,
         ...data

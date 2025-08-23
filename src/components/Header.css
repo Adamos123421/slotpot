@@ -1,13 +1,10 @@
 .header {
-  background: rgba(15, 15, 35, 0.95);
-  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+  background: rgba(0, 0, 0, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 
-    0 4px 20px rgba(0, 0, 0, 0.3),
-    0 0 40px rgba(139, 92, 246, 0.1);
   width: 100vw;
   margin-left: calc(-50vw + 50%);
 }
@@ -21,6 +18,88 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+}
+
+/* Ensure all header icons are white */
+.header svg,
+.header-content svg,
+.header-left svg,
+.header-right svg,
+.page-header svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* Page header styling */
+.page-header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.username-setup-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.username-setup-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.username-setup-btn span {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .username-setup-btn span {
+    display: inline;
+  }
+}
+
+.page-header .logo-image,
+.header-left .logo-image {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.app-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
 }
 
 .header-left {

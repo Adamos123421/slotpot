@@ -421,7 +421,7 @@ function GameArea({
           </div>
           <div className="bet-buttons">
             <button className="bet-preset" onClick={() => onBetChange({ target: { value: '0.11' } })}>0.11</button>
-            <button className="bet-preset" onClick={() => onBetChange({ target: { value: '0.5' } })}>0.5</button>
+            <button className="bet-preset" onClick={() => onBetChange({ target: { value: '0.1' } })}>0.1</button>
             <button className="bet-preset" onClick={() => onBetChange({ target: { value: '1.0' } })}>1.0</button>
             <button className="bet-preset" onClick={() => onBetChange({ target: { value: '2.0' } })}>2.0</button>
           </div>
@@ -545,7 +545,7 @@ function GameArea({
             <div className="winner-icon">🎉</div>
             <h3>ROUND WINNER!</h3>
             <div className="winner-details">
-              <div className="winner-address">{contractWinner.username || contractWinner.winner}</div>
+              <div className="winner-name">{contractWinner.username || contractWinner.winnerName || `Player_${contractWinner.winner?.slice(-4)}`}</div>
               <div className="winner-prize">Won {contractWinner.prize} TON</div>
             </div>
             <div className="winner-confetti">🎊 🎉 🎊</div>

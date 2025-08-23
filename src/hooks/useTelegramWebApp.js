@@ -27,6 +27,20 @@ const useTelegramWebApp = () => {
       app.expand();
       app.enableClosingConfirmation();
       
+      // Prevent scroll-to-close gestures
+      app.disableVerticalSwipes();
+      if (app.setHeaderColor) {
+        app.setHeaderColor('#0a0a0f');
+      }
+      
+      // Prevent pull-to-refresh and document scroll
+      document.addEventListener('touchmove', (e) => {
+        // Only prevent scrolling on body/html level, allow within containers
+        if (e.target === document.body || e.target === document.documentElement) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+      
       // Request new full-screen mode if available
       if (app.requestFullscreen) {
         try {
@@ -76,6 +90,23 @@ const useTelegramWebApp = () => {
       const userData = app.initDataUnsafe?.user;
       const rawInitData = app.initData;
       
+      // Extract start parameter from URL hash
+      const hash = window.location.hash.slice(1);
+      const hashParams = new URLSearchParams(hash);
+      const urlParams = new URLSearchParams(window.location.search);
+      
+      const startParam = hashParams.get('tgWebAppStartParam') || 
+                        app.initDataUnsafe?.start_param || 
+                        urlParams.get('startapp') || 
+                        null;
+      
+      console.log('📱 URL hash:', hash);
+      console.log('📱 URL search params:', window.location.search);
+      console.log('📱 tgWebAppStartParam from hash:', hashParams.get('tgWebAppStartParam'));
+      console.log('📱 startapp from URL search:', urlParams.get('startapp'));
+      console.log('📱 start_param from initDataUnsafe:', app.initDataUnsafe?.start_param);
+      console.log('📱 Final startParam:', startParam);
+      
       if (userData) {
         setUser({
           id: userData.id,
@@ -88,7 +119,9 @@ const useTelegramWebApp = () => {
           // Formatted display name
           displayName: userData.first_name + (userData.last_name ? ` ${userData.last_name}` : ''),
           // Short name for UI
-          shortName: userData.first_name || userData.username || 'User'
+          shortName: userData.first_name || userData.username || 'User',
+          // Referral start param if present
+          referralCode: startParam || null
         });
         
         setInitData(rawInitData);
@@ -105,7 +138,8 @@ const useTelegramWebApp = () => {
           isPremium: false,
           displayName: "Test User",
           shortName: "Test",
-          photoUrl: null
+          photoUrl: null,
+          referralCode: new URLSearchParams(window.location.search).get('startapp') || null
         });
       }
       

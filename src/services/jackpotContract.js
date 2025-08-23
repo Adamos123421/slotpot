@@ -213,13 +213,30 @@ export class JackpotContract {
 
   // Transaction builders for sending to the contract
   buildBetTransaction(betAmount, senderAddress) {
-    const betAmountNano = toNano(betAmount.toString());
+    // Ensure betAmount is a valid number
+    console.log(`🔍 buildBetTransaction input:`, { betAmount, type: typeof betAmount });
+    const numericBetAmount = Number(betAmount);
+    console.log(`🔍 After Number() conversion:`, { numericBetAmount, isNaN: isNaN(numericBetAmount) });
+    if (isNaN(numericBetAmount)) {
+      console.log('Invalid bet amount:', betAmount);
+      throw new Error(`Invalid bet amount: ${betAmount}`);
+    }
+    
+    // Add 0.05 TON fee to the bet amount for the transaction
+    const totalAmount = numericBetAmount + 0.05;
+    console.log(`🔍 totalAmount calculation:`, { numericBetAmount, totalAmount });
+    // Ensure proper string formatting for toNano function
+    const totalAmountString = totalAmount.toFixed(9); // Use 9 decimal places for precision
+    console.log(`🔍 totalAmountString:`, totalAmountString);
+    const totalAmountNano = toNano(totalAmountString);
     // Generate unique query_id for this bet
     const queryId = Date.now() * 1000 + Math.floor(Math.random() * 1000);
     
     console.log(`🔧 Building bet transaction:`, {
-      betAmount: betAmount + ' TON',
-      betAmountNano: betAmountNano.toString(),
+      userBetAmount: numericBetAmount + ' TON',
+      feeAmount: '0.05 TON',
+      totalAmount: totalAmount + ' TON',
+      totalAmountNano: totalAmountNano.toString(),
       queryId,
       senderAddress,
       contractAddress: this.contractAddress.toString(),
@@ -253,7 +270,7 @@ export class JackpotContract {
       messages: [
         {
           address: this.contractAddress.toString(),
-          amount: betAmountNano.toString(),
+          amount: totalAmountNano.toString(),
           payload: payload.toBoc().toString('base64')
         }
       ]
@@ -262,7 +279,9 @@ export class JackpotContract {
     console.log(`🎯 Final transaction will be sent to:`, {
       destinationAddress: transaction.messages[0].address,
       amount: transaction.messages[0].amount + ' nanotons',
-      amountTON: betAmount + ' TON',
+      userBetAmount: numericBetAmount + ' TON',
+      feeAmount: '0.05 TON',
+      totalAmount: totalAmount + ' TON',
       senderAddress: senderAddress,
       isGoingToContract: transaction.messages[0].address !== senderAddress
     });

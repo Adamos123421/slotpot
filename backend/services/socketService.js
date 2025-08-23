@@ -1,4 +1,5 @@
 const { Server } = require('socket.io');
+const statsService = require('./statsService');
 
 class SocketService {
   constructor(port = 5002) {
@@ -137,7 +138,14 @@ class SocketService {
       isPostWinnerLoading: this.gameState.isPostWinnerLoading
     });
 
-    // 2. Broadcast via primary winner event
+    // 2a. Persist winner stats (best-effort)
+    try {
+      statsService.recordWinner(enhancedWinnerData);
+    } catch (e) {
+      console.warn('⚠️ Failed to persist winner stats:', e.message);
+    }
+
+    // 2b. Broadcast via primary winner event
     this.io.emit('winner', enhancedWinnerData);
     console.log('📡 Winner broadcast sent via "winner" event');
 
@@ -248,6 +256,19 @@ class SocketService {
     
     this.io.emit('newBet', betData);
     console.log('💰 Broadcasting new bet:', betData);
+
+    // Best-effort persist bet to stats
+    try {
+      const roundNumber = this.gameState?.currentRound || null;
+      statsService.recordBet({
+        address: betData.address,
+        amount: betData.amount,
+        roundNumber,
+        timestamp: betData.timestamp || Date.now(),
+      });
+    } catch (e) {
+      console.warn('⚠️ Failed to persist bet:', e.message);
+    }
   }
 
   broadcastTimerUpdate(timerData) {

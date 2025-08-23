@@ -115,7 +115,7 @@ const useJackpotContract = () => {
     
     // Listen for full game updates to sync contract state
     const handleFullGameUpdate = (gameData) => {
-      console.log('🔧 Hook: Received full game update:', gameData);
+      
       setContractState(prevState => ({
         ...prevState,
         ...gameData,
@@ -138,7 +138,7 @@ const useJackpotContract = () => {
     };
 
     const handleContractUpdate = (contractData) => {
-      console.log('🔧 Hook: Received contract update:', contractData);
+      
       setContractState(prevState => ({
         ...prevState,
         ...contractData
@@ -146,7 +146,7 @@ const useJackpotContract = () => {
     };
 
     const handleBettorsUpdate = (bettorsData) => {
-      console.log('🔧 Hook: Received bettors update:', bettorsData);
+      
       if (bettorsData.bettors) {
         setCurrentBettors(bettorsData.bettors);
       }
@@ -178,22 +178,24 @@ const useJackpotContract = () => {
       throw new Error('Jackpot is not active');
     }
 
-    if (betAmount < 0.1) {
-      throw new Error('Minimum bet is 0.1 TON');
+    // Ensure betAmount is a number and check minimum with proper precision
+    const numericBetAmount = Number(betAmount);
+    if (isNaN(numericBetAmount) || numericBetAmount < 0.05) {
+      throw new Error('Minimum bet is 0.05 TON');
     }
 
-    if (betAmount > 10) {
+    if (numericBetAmount > 10) {
       throw new Error('Maximum bet is 10 TON');
     }
 
     try {
       setIsPlacingBet(true);
-      console.log(`🎰 Placing bet: ${betAmount} TON from ${address}`);
+      console.log(`🎰 Placing bet: ${numericBetAmount} TON from ${address}`);
       console.log(`📋 Contract state: active=${contractState.isActive}, jackpot=${contractState.totalJackpot}`);
 
       // Build transaction for the smart contract using the contract service
       console.log(`🔧 Building transaction with opcode 0x03...`);
-      const transaction = jackpotContract.buildBetTransaction(betAmount, "EQDhuMbM_cT3dXuJulXmlkA12YF8k5VdpPc1UxkuEqLpCo9K");
+      const transaction = jackpotContract.buildBetTransaction(numericBetAmount, "EQDhuMbM_cT3dXuJulXmlkA12YF8k5VdpPc1UxkuEqLpCo9K");
       
       console.log(`📤 Sending transaction to contract:`, {
         contractAddress: transaction.messages[0].address,
@@ -213,9 +215,48 @@ const useJackpotContract = () => {
 
       // Notify backend about the bet with full user data including Telegram ID
       try {
-        const username = user?.displayName || user?.shortName || user?.username;
+        // Try to get the best available username
+        let username;
+        
+        // Check if we're in Telegram WebApp and have real user data
+        const isTelegramWebApp = window.Telegram?.WebApp;
+        const hasRealTelegramData = user?.id && user.id !== 123456789; // Not mock data
+        
+        // First, try to get stored username from localStorage
+        const storedUsername = localStorage.getItem('slotpot_username');
+        
+        if (storedUsername && storedUsername.trim().length >= 2) {
+          username = storedUsername.trim();
+        } else if (hasRealTelegramData && user?.displayName && user.displayName !== 'Test User') {
+          username = user.displayName;
+        } else if (hasRealTelegramData && user?.shortName && user.shortName !== 'Test') {
+          username = user.shortName;
+        } else if (hasRealTelegramData && user?.username && user.username !== 'testuser') {
+          username = user.username;
+        } else {
+          // Create a more user-friendly fallback username
+          const addressSuffix = address?.slice(-4) || 'user';
+          username = `Player_${addressSuffix}`;
+          
+          // Log that we're using fallback username
+          console.log('👤 Using fallback username because Telegram data not available:', {
+            isTelegramWebApp: !!isTelegramWebApp,
+            hasRealTelegramData,
+            userData: user,
+            storedUsername
+          });
+        }
+        console.log('👤 Bet notification - User data:', { 
+          displayName: user?.displayName, 
+          shortName: user?.shortName, 
+          username: user?.username,
+          finalUsername: username,
+          telegramId: user?.id,
+          hasRealUserData: !!user?.id
+        });
+        
         const userData = {
-          amount: betAmount,
+          amount: numericBetAmount,
           address: address,
           username: username,
           // Include Telegram data for profile picture fetching
@@ -235,9 +276,9 @@ const useJackpotContract = () => {
       try {
         // Emit socket event for chat notification with Telegram data
         socketService.emit('game:bet', { 
-          amount: betAmount,
+          amount: numericBetAmount,
           address: address,
-          username: user?.displayName || user?.shortName || user?.username,
+          username: username, // Use the same username from above
           telegramId: user?.id,
           firstName: user?.firstName,
           lastName: user?.lastName
@@ -256,11 +297,11 @@ const useJackpotContract = () => {
       return {
         success: true,
         txHash: result.boc || 'unknown',
-        amount: betAmount,
+        amount: numericBetAmount,
         address: address
       };
     } catch (error) {
-      console.error('❌ Bet placement failed:', error);
+      console.error('❌ Bet placement faissled: numericBetAmount', numericBetAmount, error);
       
       // Show error notification
       if (typeof window !== 'undefined' && window.showTransactionNotification) {

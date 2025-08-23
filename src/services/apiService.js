@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5002';
+const API_BASE_URL = 'https://hk-seeks-jet-session.trycloudflare.com';
 
 class ApiService {
   constructor() {

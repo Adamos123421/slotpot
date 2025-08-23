@@ -1,20 +1,26 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { TonConnectUIProvider } from '@tonconnect/ui-react';
-import Chat from './components/Chat';
 import GameArea from './components/GameArea';
-import MobileChat from './components/MobileChat';
 import WalletConnection from './components/WalletConnection';
+import PlayerProfile from './components/PlayerProfile';
 import WinnerBroadcast from './components/WinnerBroadcast';
+import Header from './components/Header';
+import RecentWinners from './components/RecentWinners';
 import SimpleCarousel from './components/SimpleCarousel';
-import SoundControl from './components/SoundControl';
+import ReferralSystem from './components/ReferralSystem';
+import UsernameInput from './components/UsernameInput';
+import OnlineIndicator from './components/OnlineIndicator';
+import ChatBubble from './components/ChatBubble';
+
 import { TonIcon } from './components/IconComponents';
 import useTelegramWebApp from './hooks/useTelegramWebApp';
 import useJackpotContract from './hooks/useJackpotContract';
+import useReferralAutoRegistration from './hooks/useReferralAutoRegistration';
+import { DollarSign, User, Loader2, Trophy, Share2, Users, Target, Coins } from 'lucide-react';
 import socketService from './services/socketService';
 import winnerCoordinator from './services/winnerCoordinator';
-import soundService from './services/soundService';
+
 import { uiOptions } from './config/tonconnect';
-import { MessageCircle, Trophy, Users, DollarSign } from 'lucide-react';
 import './App.css';
 import './components/Header.css';
 
@@ -22,11 +28,14 @@ import './components/Header.css';
 const manifestUrl = "https://raw.githubusercontent.com/Vodka2134156/kzsks/main/manifest.json";
 
 function AppContent() {
+  // Global referral auto-registration
+  useReferralAutoRegistration();
+  
   // Local UI state
   const [currentRound, setCurrentRound] = useState(53408);
   const [timeRemaining, setTimeRemaining] = useState(30);
   const [activeTab, setActiveTab] = useState('jackpot');
-  const [betAmount, setBetAmount] = useState(0.11);
+  const [betAmount, setBetAmount] = useState(0.1);
   const [showWinnerAnnouncement, setShowWinnerAnnouncement] = useState(false);
   
   // Winner state management (moved from GameArea.js)
@@ -36,6 +45,17 @@ function AppContent() {
   const [, setIsAnyWinnerDisplayActive] = useState(false);
   const [showWinnerVisually, setShowWinnerVisually] = useState(false); // Controls when winner card appears
   const [isInWinnerState, setIsInWinnerState] = useState(false); // Blocks new winner broadcasts
+  
+  // Username management
+  const [showUsernameInput, setShowUsernameInput] = useState(false);
+  const [currentUsername, setCurrentUsername] = useState('');
+  
+  // Bet loading state - tracks when user places bet until wager changes
+  const [betLoadingState, setBetLoadingState] = useState({
+    isWaitingForWagerChange: false,
+    lastWagerAmount: 0,
+    lastBalance: 0
+  });
   
   // Bettors state (managed centrally to avoid duplicates)
   const [gameBettors, setGameBettors] = useState([]);
@@ -54,23 +74,20 @@ function AppContent() {
   const showWinnerVisuallyRef = useRef(false);
   const isInWinnerStateRef = useRef(false);
   
+  // Check for stored username on app load
+  useEffect(() => {
+    const storedUsername = localStorage.getItem('slotpot_username');
+    if (storedUsername && storedUsername.trim().length >= 2) {
+      setCurrentUsername(storedUsername.trim());
+    }
+  }, []);
+
+
+
   // Keep refs in sync with state
   useEffect(() => { gameBettorsRef.current = gameBettors; }, [gameBettors]);
   useEffect(() => { 
     contractWinnerRef.current = contractWinner; 
-    
-    // Log winner detection only once when contractWinner changes
-    if (contractWinner) {
-      console.log('🏆 WINNER DETECTED FROM BACKEND!', { 
-        winnerAddress: contractWinner.winner || contractWinner.fullAddress,
-        winnerName: contractWinner.username || contractWinner.displayName || 'Player',
-        prize: contractWinner.prize,
-        contractWinner
-      });
-      console.log('🎬 ANIMATION SHOULD START NOW - waiting for carousel to detect winner');
-    } else {
-      console.log('❌ WINNER CLEARED - contractWinner set to null');
-    }
   }, [contractWinner]);
   useEffect(() => { showWinnerAnnouncementRef.current = showWinnerAnnouncement; }, [showWinnerAnnouncement]);
   useEffect(() => { waitingForWinnerRef.current = waitingForWinner; }, [waitingForWinner]);
@@ -85,21 +102,18 @@ function AppContent() {
     
     // Block winner broadcasts if already in winner state
     if (isInWinnerStateRef.current) {
-      console.log(`🚫 BLOCKED - Already in winner state, ignoring winner broadcast from ${source}`);
+      if (process.env.NODE_ENV === 'development') {
+        // console.log(`🚫 BLOCKED - Already in winner state, ignoring ${source}`);
+      }
       return false;
     }
     
     // Use coordinator to check if should block (pass full winner data for better duplicate detection)
     if (winnerCoordinator.shouldBlock(winnerTimestamp, winnerData)) {
-      console.log(`🔄 Winner announcement blocked by coordinator (${source})`);
       return false;
     }
     
-    console.log(`🎉 Showing winner announcements from ${source}:`, winnerData);
-    console.log(`🎯 Entering winner state - blocking future winner broadcasts`);
-    
-    // Play winner sound
-    soundService.playWinner();
+    // Winner sound removed for performance
     
     // Enter winner state to block future broadcasts
     setIsInWinnerState(true);
@@ -116,12 +130,8 @@ function AppContent() {
     
     // Start animation - winner visual will appear after animation lands on winner
     setTimeout(() => {
-      console.log('🎬 Animation should have landed on winner - showing winner visually');
       setShowWinnerVisually(true);
     }, 3000); // Give animation time to land properly
-    
-    // Winner will stay visible until new round starts (no automatic timeout)
-    console.log('🏆 Winner display will persist until new round is declared by backend');
     
     return true;
   }, []);
@@ -192,7 +202,7 @@ function AppContent() {
   const jackpotValue = contractState.totalJackpot;
   const isLive = contractState.isActive;
   
-  // Calculate user stats from gameBettors data
+  // Calculate user stats from gameBettors data - optimized with shallow comparison
   const userBetTotal = useMemo(() => {
     if (!isConnected || !address || !gameBettors.length) return 0;
     
@@ -202,7 +212,7 @@ function AppContent() {
         bettor.walletAddress === address
       )
       .reduce((total, bettor) => total + (bettor.amount || 0), 0);
-  }, [gameBettors, address, isConnected]);
+  }, [gameBettors.length, address, isConnected]); // Optimized dependencies
   
   const userWinChance = useMemo(() => {
     if (!isConnected || !address || userBetTotal === 0) return 0;
@@ -216,7 +226,28 @@ function AppContent() {
     if (!liveJackpotValue) return 0;
     
     return (userBetTotal / liveJackpotValue) * 100;
-  }, [userBetTotal, jackpotValue, gameBettors, isConnected, address]);
+  }, [userBetTotal, jackpotValue, gameBettors.length, isConnected, address]); // Optimized dependencies
+
+  // Track wager changes to determine when bet loading should stop
+  useEffect(() => {
+    const currentWager = userBetTotal || 0;
+    const currentBalance = contractState?.userBalance || 0;
+    
+    // If we're waiting for wager change and the wager has changed
+    if (betLoadingState.isWaitingForWagerChange) {
+      const wagerChanged = Math.abs(currentWager - betLoadingState.lastWagerAmount) > 0.001;
+      const balanceChanged = Math.abs(currentBalance - betLoadingState.lastBalance) > 0.001;
+      
+      if (wagerChanged || balanceChanged) {
+        console.log('💰 Wager/Balance changed - stopping bet loading state');
+        setBetLoadingState({
+          isWaitingForWagerChange: false,
+          lastWagerAmount: currentWager,
+          lastBalance: currentBalance
+        });
+      }
+    }
+  }, [userBetTotal, contractState?.userBalance, betLoadingState.isWaitingForWagerChange, betLoadingState.lastWagerAmount, betLoadingState.lastBalance]);
 
   // Use automation timer or fallback to UI timer - only sync if significant difference
   useEffect(() => {
@@ -227,13 +258,11 @@ function AppContent() {
         
         // Don't sync timer if we're analyzing bets or waiting for winner to avoid bugs
         if (waitingForWinner || isInWinnerState) {
-          console.log('⏰ Timer sync blocked - in analyzing/winner state');
           return prev;
         }
         
         // Only sync if difference is 5+ seconds or backend is significantly ahead
         if (timeDiff >= 5 || backendTime > prev + 2) {
-          console.log('⏰ Contract timer sync:', prev, '→', backendTime, `(${timeDiff}s difference)`);
           return backendTime;
         }
         
@@ -250,8 +279,6 @@ function AppContent() {
     // Only run countdown when game is live
     if (!isLive) return;
 
-    console.log('⏰ Starting local countdown timer...');
-
     const countdown = setInterval(() => {
       setTimeRemaining(prev => {
         // Continue countdown even at 0 but don't go negative
@@ -260,12 +287,12 @@ function AppContent() {
           
           // Play countdown sound for final 5 seconds (more dramatic)
           if (newTime <= 5 && newTime > 0) {
-            soundService.playCountdown();
+            // Countdown sound removed for performance
           }
         
           // When we reach 0, trigger "analyzing bets" state locally
         if (newTime === 0) {
-            soundService.playAnalyze(); // Play analyze sound
+            // Analyze sound removed for performance
             setWaitingForWinner(true); // This will show "Analyzing Bets..."
         }
         
@@ -278,7 +305,6 @@ function AppContent() {
     }, 1000);
 
     return () => {
-      console.log('⏰ Stopping local countdown timer...');
       clearInterval(countdown);
     };
   }, [isLive]); // Restart when isLive changes
@@ -287,12 +313,12 @@ function AppContent() {
 
   // Socket integration for immediate synchronization - SINGLE CONNECTION POINT
   useEffect(() => {
-    console.log('🔌 App.js: Establishing single socket connection for entire app...');
+    // Socket connection established
     socketService.connect();
 
     // Listen for timer updates from socket
     socketService.on('timer', (timerData) => {
-      console.log('⏰ App: Socket timer update:', timerData);
+      // Timer update received
       
       // SAFETY: Ensure timerData exists and has required properties
       if (!timerData || typeof timerData !== 'object') {
@@ -310,8 +336,7 @@ function AppContent() {
           
           // Only clear winner state when new round detected AND timer is significantly higher (real new round)
           if (isNewRound && contractWinner && newTimeRemaining > 200) {
-            console.log('🔄 Timer update detected REAL new round with fresh timer - clearing winner state');
-            console.log('🔓 Exiting winner state - new round detected');
+                    // New round detected - clearing winner state
             setIsInWinnerState(false);
             setContractWinner(null);
             setShowWinnerAnnouncement(false);
@@ -323,13 +348,13 @@ function AppContent() {
           
           // Don't sync timer if we're analyzing bets or waiting for winner to avoid bugs
           if (waitingForWinnerRef.current || isInWinnerStateRef.current) {
-            console.log('⏰ Socket timer sync blocked - in analyzing/winner state');
+            // Timer sync blocked - in analyzing/winner state
             return prev;
           }
           
           // Sync if: new round, big difference (>5s), or timer reset (server > client)
           if (isNewRound || timeDiff >= 5 || newTimeRemaining > prev + 2) {
-            console.log('⏰ Syncing timer:', prev, '→', newTimeRemaining, isNewRound ? '(new round)' : timeDiff >= 5 ? '(>=5s difference)' : '(backend ahead)');
+            // Timer synced
             return newTimeRemaining;
           }
           
@@ -345,8 +370,8 @@ function AppContent() {
 
     // Listen for new round events
     socketService.on('newRound', (roundData) => {
-      console.log('🎰 App: New round detected via socket:', roundData);
-      console.log('🔓 Exiting winner state - new round started');
+      // console.log('🎰 App: New round detected via socket:', roundData);
+      // console.log('🔓 Exiting winner state - new round started');
       
       setTimeRemaining(roundData.timeRemaining);
       setCurrentRound(roundData.roundNumber);
@@ -368,7 +393,7 @@ function AppContent() {
 
     // Listen for game state updates
     socketService.on('gameState', (gameState) => {
-      console.log('🎮 App: Game state update:', gameState);
+      // console.log('🎮 App: Game state update:', gameState);
       
       // Priority: Use timer.timeRemaining ONLY (as user specified)
       const backendTimeRemaining = gameState.timer?.timeRemaining;
@@ -379,18 +404,18 @@ function AppContent() {
           
           // Don't sync timer if we're analyzing bets or waiting for winner to avoid bugs
           if (waitingForWinnerRef.current || isInWinnerStateRef.current) {
-            console.log('⏰ GameState timer sync blocked - in analyzing/winner state');
+            // console.log('⏰ GameState timer sync blocked - in analyzing/winner state');
             return prev;
           }
           
           // Only sync if there's a significant difference (>=5s) or if backend is ahead
           if (timeDiff >= 5 || backendTimeRemaining > prev + 2) {
-            console.log('⏰ GameState syncing timer:', prev, '→', backendTimeRemaining, timeDiff >= 5 ? '(>=5s difference)' : '(backend ahead)');
+            // console.log('⏰ GameState syncing timer:', prev, '→', backendTimeRemaining, timeDiff >= 5 ? '(>=5s difference)' : '(backend ahead)');
             return backendTimeRemaining;
           }
           
           // Keep local countdown running if difference is small
-          console.log('⏰ GameState keeping local timer:', prev, 'vs backend:', backendTimeRemaining);
+          // console.log('⏰ GameState keeping local timer:', prev, 'vs backend:', backendTimeRemaining);
           return prev;
         });
       }
@@ -405,8 +430,8 @@ function AppContent() {
         const hasActiveTimer = gameState.timer?.isActive || gameState.timer?.timeRemaining > 60;
         
         if (isNewRound && hasActiveTimer && isInWinnerStateRef.current) {
-          console.log('🔄 GameState detected NEW ROUND with active timer - clearing winner state');
-          console.log('🔓 Exiting winner state - new round started via gameState');
+                  // console.log('🔄 GameState detected NEW ROUND with active timer - clearing winner state');
+        // console.log('🔓 Exiting winner state - new round started via gameState');
           setIsInWinnerState(false);
           setContractWinner(null);
           setShowWinnerAnnouncement(false);
@@ -415,7 +440,7 @@ function AppContent() {
           setIsAnyWinnerDisplayActive(false);
           // Don't clear previousRoundBettors immediately - let carousel finish its animation
           setTimeout(() => {
-            console.log('🔄 Delayed clearing of previous round bettors');
+            // console.log('🔄 Delayed clearing of previous round bettors');
             setPreviousRoundBettors([]);
           }, 2000); // Give carousel time to finish
           winnerCoordinator.reset();
@@ -428,8 +453,16 @@ function AppContent() {
       if (gameState.isWaitingForWinner !== undefined) {
         // If transitioning TO waiting for winner, store current bettors
         if (gameState.isWaitingForWinner && !waitingForWinnerRef.current && gameBettorsRef.current.length > 0) {
-          console.log('🎮 App: Transitioning to waiting for winner, storing bettors:', gameBettorsRef.current);
-          setPreviousRoundBettors([...gameBettorsRef.current]);
+          // console.log('🎮 App: Transitioning to waiting for winner, storing bettors:', gameBettorsRef.current);
+          
+          // Enhance bettors with proper usernames before storing
+          const enhancedBettors = gameBettorsRef.current.map(bettor => ({
+            ...bettor,
+            username: bettor.username || bettor.displayName || `Player_${bettor.address?.slice(-4)}`,
+            displayName: bettor.displayName || bettor.username || `Player_${bettor.address?.slice(-4)}`
+          }));
+          
+          setPreviousRoundBettors(enhancedBettors);
         }
         
         setWaitingForWinner(gameState.isWaitingForWinner);
@@ -443,8 +476,8 @@ function AppContent() {
           const hasActiveTimer = gameState.timer?.isActive || gameState.timer?.timeRemaining > 60;
           
           if (isNewRound && hasActiveTimer) {
-            console.log('🔄 waitingForWinner false + new round + active timer = new round started - clearing winner state');
-            console.log('🔓 Exiting winner state - new round confirmed');
+                    // console.log('🔄 waitingForWinner false + new round + active timer = new round started - clearing winner state');
+        // console.log('🔓 Exiting winner state - new round confirmed');
             setIsInWinnerState(false);
             setContractWinner(null);
             setShowWinnerAnnouncement(false);
@@ -453,12 +486,12 @@ function AppContent() {
             setIsAnyWinnerDisplayActive(false);
             // Don't clear previousRoundBettors immediately - let carousel finish its animation
             setTimeout(() => {
-              console.log('🔄 Delayed clearing of previous round bettors (waitingForWinner)');
+              // console.log('🔄 Delayed clearing of previous round bettors (waitingForWinner)');
               setPreviousRoundBettors([]);
             }, 2000); // Give carousel time to finish
             winnerCoordinator.reset();
           } else {
-            console.log('⏳ waitingForWinner became false, but keeping winner state (no new round detected)');
+            // console.log('⏳ waitingForWinner became false, but keeping winner state (no new round detected)');
           }
         }
       }
@@ -467,11 +500,11 @@ function AppContent() {
       if (gameState.bettors && Array.isArray(gameState.bettors)) {
         // Only log if bettors count changed to reduce spam
         if (gameState.bettors.length !== gameBettorsRef.current.length) {
-          console.log('🎮 App: Updating bettors from gameState:', gameState.bettors.length, 'bettors');
+          // console.log('🎮 App: Updating bettors from gameState:', gameState.bettors.length, 'bettors');
           
           // Play bet sound when new bettor joins (if count increased)
           if (gameState.bettors.length > gameBettorsRef.current.length) {
-            soundService.playBet();
+            // Bet sound removed for performance
           }
           
           // Trigger slot machine animation when new bettor joins
@@ -482,7 +515,15 @@ function AppContent() {
         // Store current bettors as previous round bettors when waiting for winner
         if (gameState.isWaitingForWinner && gameState.bettors.length > 0) {
           console.log('🎮 App: Storing bettors for winner matching:', gameState.bettors);
-          setPreviousRoundBettors([...gameState.bettors]);
+          
+          // Enhance bettors with proper usernames before storing
+          const enhancedBettors = gameState.bettors.map(bettor => ({
+            ...bettor,
+            username: bettor.username || bettor.displayName || `Player_${bettor.address?.slice(-4)}`,
+            displayName: bettor.displayName || bettor.username || `Player_${bettor.address?.slice(-4)}`
+          }));
+          
+          setPreviousRoundBettors(enhancedBettors);
         }
         
         setGameBettors(gameState.bettors);
@@ -496,15 +537,14 @@ function AppContent() {
 
     // Listen for comprehensive game data updates
     socketService.on('fullGameUpdate', (gameData) => {
-      console.log('🎮 App: Full game update:', gameData);
+      //console.log('🎮 App: Full game update:', gameData);
       // These updates will trigger re-renders via useJackpotContract hook
       // The hook will detect the changes and update accordingly
     });
 
     // Listen for bettors updates
     socketService.on('bettorsUpdate', (data) => {
-      // Play bet sound when someone places a bet
-      soundService.playBet();
+      // Bet sound removed for performance
       
       // Trigger slot machine animation on bettor updates
       setSlotSpinning(true);
@@ -538,7 +578,7 @@ function AppContent() {
     // Listen for winner announcements (primary)
     socketService.on('winner', (winnerData) => {
       console.log('🏆 App: Winner announced:', winnerData);
-      console.log('🏆 App: Current gameBettors for comparison:', gameBettors);
+
       console.log('🏆 App: Previous round bettors for comparison:', previousRoundBettors);
       setWaitingForWinner(false);
       setPostWinnerLoading(true);
@@ -619,7 +659,7 @@ function AppContent() {
       // For valid numbers, check limits but preserve decimal typing
       const numericValue = parseFloat(normalizedValue);
       if (!isNaN(numericValue) && numericValue <= 10) {
-        setBetAmount(inputValue); // Keep the original input format (comma or period)
+        setBetAmount(normalizedValue); // Use normalized value to ensure consistency
       }
     }
   };
@@ -656,17 +696,20 @@ function AppContent() {
       
       await placeBet(numericBetAmount);
       
-      // Play bet sound after successful transaction
-      console.log('🔊 Playing bet sound for successful personal bet...');
-      soundService.playBet();
+      // Bet sound removed for performance
+      // Set loading state to wait for wager/balance change
+      setBetLoadingState({
+        isWaitingForWagerChange: true,
+        lastWagerAmount: userBetTotal || 0,
+        lastBalance: contractState?.userBalance || 0
+      });
       
       // Reset bet amount after successful bet
-      setBetAmount(0.11);
+      setBetAmount(0.1);
       
       hapticFeedback('success');
       showAlert(`✅ Bet of ${numericBetAmount.toFixed(3)} TON placed successfully!`);
     } catch (error) {
-      console.error('Failed to place bet:', error);
       hapticFeedback('error');
       showAlert(`❌ Failed to place bet: ${error.message}`);
     }
@@ -675,25 +718,39 @@ function AppContent() {
   return (
     <div className="app">
         <div className="app-container">
-          {/* Header Section */}
-          <div className="header-section">
-            <div className="header-top">
-              <div className="logo-section">
-                <div className="logo-icon">🎰</div>
-                <div className="app-name">SlotPot</div>
-              </div>
-              
-
-              
-              <div className="header-icons">
-                <SoundControl />
-                <WalletConnection />
-              </div>
-            </div>
-          </div>
+          {/* Fixed Chat Bubble */}
+          <ChatBubble telegramGroupUrl="https://t.me/yourgroup" />
           
           {/* Main Content */}
           <div className="main-content">
+            {activeTab === 'profile' ? (
+              <div className="profile-container">
+                <Header 
+                  currentUsername={currentUsername}
+                  onShowUsernameInput={() => setShowUsernameInput(true)}
+                />
+                <PlayerProfile />
+              </div>
+            ) : activeTab === 'referrals' ? (
+              <div className="referrals-container">
+                <Header 
+                  currentUsername={currentUsername}
+                  onShowUsernameInput={() => setShowUsernameInput(true)}
+                />
+                <ReferralSystem />
+              </div>
+                          ) : (
+                <div className="jackpot-container">
+                  {/* Online Indicator - Just above header */}
+                  <OnlineIndicator 
+                    isConnected={isConnected} 
+                  />
+                  
+                  <Header 
+                    currentUsername={currentUsername}
+                    onShowUsernameInput={() => setShowUsernameInput(true)}
+                  />
+            <>
             {/* Betting Section */}
             <div className="betting-section">
               <div className="bet-input-section">
@@ -725,14 +782,13 @@ function AppContent() {
           <button 
                 className="bet-button" 
                 onClick={handlePlaceBet}
-                disabled={isPlacingBet || !isConnected || contractWinner || showWinnerAnnouncement}
+                disabled={isPlacingBet || betLoadingState.isWaitingForWagerChange || !isConnected || contractWinner || showWinnerAnnouncement}
           >
                 {contractWinner || showWinnerAnnouncement ? 'Winner Display - Wait for New Round' :
-                 isPlacingBet ? 'Betting...' : 'Bet'}
+                 isPlacingBet ? 'Betting...' :
+                 betLoadingState.isWaitingForWagerChange ? 'Processing Bet...' : 'Bet'}
           </button>
         </div>
-
-
 
             {/* Four Card Stats Grid */}
             <div className="stats-grid four-cards">
@@ -772,7 +828,7 @@ function AppContent() {
                   {(timeRemaining === 0 && waitingForWinner) || (contractWinner && !showWinnerVisually) ? 
                     "🔍 Analyzing Bets..." : 
                     showWinnerVisually && contractWinner ? 
-                    `🏆 Winner: ${contractWinner.username || contractWinner.displayName || contractWinner.winner || 'Player'}` :
+                    `🏆 Winner: ${contractWinner.username || contractWinner.displayName || contractWinner.winnerName || `Player_${contractWinner.winner?.slice(-4)}` || 'Player'}` :
                     `Players (${gameBettors.length > 0 ? gameBettors.length : previousRoundBettors.length})`
                   }
                 </h3>
@@ -794,13 +850,93 @@ function AppContent() {
                 })()}
                 contractWinner={contractWinner}
                 isSpinning={(timeRemaining === 0 && waitingForWinner) || (contractWinner && !showWinnerVisually)}
-                onSpinComplete={() => {
-                  console.log('🎯 Winner animation completed in SimpleCarousel!');
-                  console.log('🔄 Carousel finished - now safe to clear winner state in future');
-                  // Winner is already set via showWinnerVisually
-                }}
+                                  onSpinComplete={() => {
+                    // Winner animation completed
+                    // Winner is already set via showWinnerVisually
+                  }}
               />
         </div>
+        
+        {/* Bets Deflate Section */}
+        <div className="bets-deflate-section">
+          <div className="bets-deflate-header">
+            <h3>Current Round Bets</h3>
+            <div className="round-info">
+              <span>#{currentRound}</span>
+            </div>
+          </div>
+          
+          <div className="bets-deflate-list">
+            {(() => {
+              const bettorsToShow = (contractWinner || waitingForWinner) ? 
+                                   previousRoundBettors.length > 0 ? previousRoundBettors : gameBettors :
+                                   gameBettors.length > 0 ? gameBettors : [];
+              
+                             return bettorsToShow.map((bettor, index) => {
+                 const betAmount = parseFloat(bettor.amount || 0);
+                 const currentJackpot = parseFloat(jackpotValue || 0);
+                 const chance = currentJackpot > 0 ? ((betAmount / currentJackpot) * 100).toFixed(2) : '0.00';
+                 const usdValue = (betAmount * 2.5).toFixed(1); // Approximate USD value
+                
+                return (
+                  <div key={`${bettor.address}-${index}`} className="bet-deflate-card">
+                    <div className="bet-deflate-avatar">
+                      <div className="avatar-icon">
+                        <Users size={20} />
+                      </div>
+                      <div className="avatar-count">1</div>
+                    </div>
+                    
+                    <div className="bet-deflate-info">
+                      <div className="bet-deflate-username">
+                        {bettor.username || bettor.displayName || bettor.winner || `Player_${bettor.address.slice(-4)}`}
+                      </div>
+                      <div className="bet-deflate-amount">
+                        <TonIcon size={16} className="bet-deflate-ton-icon" />
+                        <span>{betAmount.toFixed(3)}</span>
+                        <div className="bet-deflate-usd">~${usdValue}</div>
+                      </div>
+                    </div>
+                    
+                    <div className="bet-deflate-chance">
+                      <div className="chance-label">
+                        <Target size={12} />
+                        <span>Chance</span>
+                      </div>
+                      <div className="chance-value">{chance}%</div>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+            
+            {(() => {
+              const bettorsToShow = (contractWinner || waitingForWinner) ? 
+                                   previousRoundBettors.length > 0 ? previousRoundBettors : gameBettors :
+                                   gameBettors.length > 0 ? gameBettors : [];
+              
+              if (bettorsToShow.length === 0) {
+                return (
+                  <div className="bet-deflate-empty">
+                    <div className="empty-icon">
+                      <Coins size={32} />
+                    </div>
+                    <div className="empty-text">No bets yet</div>
+                    <div className="empty-subtext">Be the first to place a bet!</div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+          </div>
+        </div>
+        
+        {/* Recent Winners Section */}
+        <RecentWinners />
+        
+            </>
+              </div>
+            )}
       </div>
 
       {/* Mobile Navigation Bar */}
@@ -810,24 +946,24 @@ function AppContent() {
             className={`navbar-item ${activeTab === 'jackpot' ? 'active' : ''}`}
             onClick={() => setActiveTab('jackpot')}
           >
-            <div className="navbar-icon">🎰</div>
+            <div className="navbar-icon"><DollarSign size={20} /></div>
             <div className="navbar-label">Jackpot</div>
-          </button>
-          
-          <button 
-            className={`navbar-item ${activeTab === 'stats' ? 'active' : ''}`}
-            onClick={() => setActiveTab('stats')}
-          >
-            <div className="navbar-icon">📊</div>
-            <div className="navbar-label">Stats</div>
           </button>
           
           <button 
             className={`navbar-item ${activeTab === 'profile' ? 'active' : ''}`}
             onClick={() => setActiveTab('profile')}
           >
-            <div className="navbar-icon">👤</div>
+            <div className="navbar-icon"><User size={20} /></div>
             <div className="navbar-label">Profile</div>
+          </button>
+          
+          <button 
+            className={`navbar-item ${activeTab === 'referrals' ? 'active' : ''}`}
+            onClick={() => setActiveTab('referrals')}
+          >
+            <div className="navbar-icon"><Share2 size={20} /></div>
+            <div className="navbar-label">Referrals</div>
           </button>
         </div>
       </div>
@@ -836,13 +972,25 @@ function AppContent() {
       {/* Contract Status Indicator */}
       {isLoadingContract && !contractWinner && !showWinnerAnnouncement && (
         <div className="loading-overlay">
-          <div className="loading-spinner">🔄</div>
+          <div className="loading-spinner"><Loader2 size={24} className="animate-spin" /></div>
           <span>Loading contract data...</span>
         </div>
       )}
 
       {/* Winner Broadcast Component */}
       <WinnerBroadcast socketService={socketService} />
+      
+      {/* Username Input Modal */}
+      <UsernameInput 
+        isVisible={showUsernameInput}
+        currentUsername={currentUsername}
+        onUsernameSet={(username) => {
+          setCurrentUsername(username);
+          setShowUsernameInput(false);
+          // Trigger a page reload to update the username everywhere
+          window.location.reload();
+        }}
+      />
     </div>
   );
 }

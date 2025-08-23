@@ -6,7 +6,7 @@ class UserService {
   }
 
   // Register user with backend when they connect wallet
-  async registerUser(address, userData) {
+  async registerUser(address, userData, referralCode) {
     try {
       if (!address) {
         console.error('❌ Cannot register user: no address provided');
@@ -26,7 +26,8 @@ class UserService {
         username: userData.username || userData.displayName || userData.shortName,
         firstName: userData.firstName,
         lastName: userData.lastName,
-        telegramId: userData.id
+        telegramId: userData.id,
+        referrer: referralCode || userData.referrer
       });
 
       if (response.success) {

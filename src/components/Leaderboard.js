@@ -1,25 +1,96 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Trophy, TrendingUp, Crown } from 'lucide-react';
 import './Leaderboard.css';
+import { backendApi } from '../services/backendApi';
 
 const Leaderboard = ({ currentRound }) => {
-  const lastWinner = {
-    username: 'HalaKka',
-    level: 14,
-    avatar: null,
-    winAmount: 1.663,
-    chance: 21.13
-  };
+  const [lastWinner, setLastWinner] = useState(null);
+  const [recentWinners, setRecentWinners] = useState([]);
+  const [summary, setSummary] = useState(null);
 
-  const recentWinners = [
-    { id: 1, username: 'coli', level: 12, winAmount: 10.788, round: 52955 },
-    { id: 2, username: 'Player123', level: 8, winAmount: 5.432, round: 52954 },
-    { id: 3, username: 'BetMaster', level: 23, winAmount: 3.891, round: 52953 },
-    { id: 4, username: 'LuckyUser', level: 15, winAmount: 7.234, round: 52952 },
-    { id: 5, username: 'CryptoKing', level: 31, winAmount: 12.567, round: 52951 }
-  ];
+  useEffect(() => {
+    let mounted = true;
+    async function loadStats() {
+      try {
+        const [games, sum] = await Promise.all([
+          backendApi.getRecentGames(5),
+          backendApi.getStatsSummary(),
+        ]);
+        if (!mounted) return;
+        setSummary(sum);
+        setRecentWinners(
+          (games || []).map((g, idx) => ({
+            id: `${g.roundNumber ?? idx}`,
+            username: g.displayName || g.currentUsername || g.username || (g.winnerDisplay || '').replace(/\.\.\./, '...') || 'Unknown',
+            level: null,
+            winAmount: g.prize,
+            round: g.roundNumber ?? '-',
+            avatar: g.avatar, // Use cached avatar from backend
+            winnerAddress: g.winnerAddress // For fallback avatar generation
+          }))
+        );
+        setLastWinner(
+          games && games.length > 0
+            ? {
+                username: games[0].displayName || games[0].currentUsername || games[0].username || 'Unknown',
+                level: null,
+                avatar: games[0].avatar, // Use cached avatar from backend
+                winAmount: games[0].prize,
+                chance: null,
+                winnerAddress: games[0].winnerAddress
+              }
+            : null
+        );
+      } catch (e) {
+        // silent fail keeps UI
+      }
+    }
+    loadStats();
+    const t = setInterval(loadStats, 120000); // Update every 2 minutes (120 seconds)
+    return () => {
+      mounted = false;
+      clearInterval(t);
+    };
+  }, []);
 
-  const generateAvatar = (name) => {
+  const generateAvatar = (name, avatar = null, address = null) => {
+    // If we have a cached Telegram avatar, use it
+    if (avatar) {
+      return (
+        <img 
+          src={avatar} 
+          alt={name}
+          className="telegram-avatar-small"
+          onError={(e) => {
+            // Fallback to generated avatar if image fails to load
+            e.target.style.display = 'none';
+            e.target.nextSibling.style.display = 'flex';
+          }}
+        />
+      );
+    }
+    
+    // Generate fallback avatar using Robohash if we have address
+    const fallbackSrc = address ? 
+      `https://robohash.org/${address}.png?size=50x50` : 
+      null;
+    
+    if (fallbackSrc) {
+      return (
+        <img 
+          src={fallbackSrc} 
+          alt={name}
+          className="robohash-avatar-small"
+          onError={(e) => {
+            // Final fallback to color-based avatar
+            e.target.style.display = 'none';
+            e.target.nextSibling.style.display = 'flex';
+          }}
+        />
+      );
+    }
+    
+    // Color-based generated avatar as final fallback
     const colors = ['#8b5cf6', '#a855f7', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
     const colorIndex = name.charCodeAt(0) % colors.length;
     
@@ -51,28 +122,28 @@ const Leaderboard = ({ currentRound }) => {
         
         <div className="winner-card">
           <div className="winner-avatar">
-            {lastWinner.avatar ? (
+            {lastWinner && lastWinner.avatar ? (
               <img src={lastWinner.avatar} alt={lastWinner.username} />
             ) : (
-              generateAvatar(lastWinner.username)
+              generateAvatar(lastWinner ? lastWinner.username : 'Unknown')
             )}
             <div className="winner-crown">👑</div>
           </div>
           
           <div className="winner-info">
             <div className="winner-header">
-              <span className="winner-name">{lastWinner.username}</span>
-              <span className="winner-level">{lastWinner.level}</span>
+              <span className="winner-name">{lastWinner ? lastWinner.username : '—'}</span>
+              {lastWinner?.level && <span className="winner-level">{lastWinner.level}</span>}
             </div>
             
             <div className="winner-stats">
               <div className="stat-row">
                 <span className="stat-label">Won</span>
-                <span className="stat-value win-amount">≈ {lastWinner.winAmount}</span>
+                <span className="stat-value win-amount">≈ {lastWinner ? lastWinner.winAmount : '—'}</span>
               </div>
               <div className="stat-row">
                 <span className="stat-label">Chance</span>
-                <span className="stat-value chance-percent">{lastWinner.chance}%</span>
+                <span className="stat-value chance-percent">{lastWinner?.chance ? `${lastWinner.chance}%` : '—'}</span>
               </div>
             </div>
           </div>
@@ -106,7 +177,7 @@ const Leaderboard = ({ currentRound }) => {
             <div key={winner.id} className="winner-item">
               <div className="winner-rank">#{index + 1}</div>
               <div className="winner-avatar-small">
-                {generateAvatar(winner.username)}
+                {generateAvatar(winner.username, winner.avatar, winner.winnerAddress)}
               </div>
               <div className="winner-details">
                 <div className="winner-name-small">{winner.username}</div>

@@ -13,7 +13,7 @@
   justify-content: space-between;
   align-items: center;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .header-title {
@@ -26,7 +26,7 @@
 }
 
 .round-number {
-  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  background: rgba(255, 255, 255, 0.1);
   color: white;
   padding: 4px 10px;
   border-radius: 12px;
@@ -47,8 +47,8 @@
 }
 
 .current-winner-section {
-  background: rgba(26, 26, 46, 0.6);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 16px;
 }
@@ -104,13 +104,13 @@
 }
 
 .winner-level {
-  background: rgba(139, 92, 246, 0.2);
-  color: #8b5cf6;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
   padding: 2px 6px;
   border-radius: 10px;
   font-size: 10px;
   font-weight: 600;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .winner-stats {
@@ -145,13 +145,13 @@
 
 .previous-round-section {
   background: rgba(26, 26, 46, 0.4);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 16px;
 }
 
 .previous-round-number {
-  color: #8b5cf6;
+  color: #ffffff;
   font-weight: 600;
 }
 
@@ -171,7 +171,7 @@
 
 .recent-winners-section {
   background: rgba(26, 26, 46, 0.4);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 16px;
   flex: 1;
@@ -192,12 +192,12 @@
   padding: 8px;
   background: rgba(15, 15, 35, 0.6);
   border-radius: 14px;
-  border: 1px solid rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.2s ease;
 }
 
 .winner-item:hover {
-  border-color: rgba(139, 92, 246, 0.3);
+  border-color: rgba(255, 255, 255, 0.15);
   background: rgba(15, 15, 35, 0.8);
 }
 
@@ -215,6 +215,14 @@
 
 .generated-avatar-small {
   font-size: 11px;
+}
+
+.telegram-avatar-small,
+.robohash-avatar-small {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .winner-details {
@@ -305,13 +313,13 @@
 
 .leaderboard-container::-webkit-scrollbar-thumb,
 .winners-list::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.3);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 8px;
 }
 
 .leaderboard-container::-webkit-scrollbar-thumb:hover,
 .winners-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.5);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Responsive Design */

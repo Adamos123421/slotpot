@@ -244,7 +244,7 @@ const useChat = () => {
     getChatStats,
     
     // Connection info
-            serverUrl: 'http://localhost:5002',
+            serverUrl: 'http://https://hk-seeks-jet-session.trycloudflare.com  ',
     userInfo: {
       username: user?.displayName || 'Anonymous',
       isRealUser: hasRealUserData,

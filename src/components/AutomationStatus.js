@@ -165,7 +165,7 @@ const AutomationStatus = ({ adminInfo, contractState }) => {
           <div className="winner-card">
             <div className="winner-icon">🏆</div>
             <div className="winner-content">
-              <div className="winner-address">{lastWinner.slice(0, 12)}...</div>
+              <div className="winner-name">{lastWinner ? `Player_${lastWinner.slice(-4)}` : 'Unknown'}</div>
               <div className="winner-prize">Won {formattedLastPrize} TON</div>
             </div>
           </div>

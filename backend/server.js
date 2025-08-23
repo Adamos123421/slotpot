@@ -9,6 +9,7 @@ const adminAutomation = require('./services/adminAutomation');
 const contractService = require('./services/contractService');
 const socketService = require('./services/socketService');
 const userService = require('./services/userService');
+const statsService = require('./services/statsService');
 
 const app = express();
 const server = http.createServer(app);
@@ -25,13 +26,18 @@ const corsOptions = {
     "https://slotpot-pofq4gtma-adams-projects-21612ba2.vercel.app",
     // Allow all Vercel deployments
     /^https:\/\/.*\.vercel\.app$/,
+    // Allow Cloudflare tunnels
+    /^https:\/\/.*\.trycloudflare\.com$/,
+    "https://crops-fragrance-muscles-deposit.trycloudflare.com",
     // Allow connections from your local network
     /^http:\/\/192\.168\.\d+\.\d+:\d+$/,
     /^http:\/\/10\.\d+\.\d+\.\d+:\d+$/,
     /^http:\/\/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+:\d+$/
   ].filter(Boolean),
-  methods: ["GET", "POST"],
-  credentials: true
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  credentials: true,
+  optionsSuccessStatus: 200
 };
 
 // Initialize the socket service with the HTTP server
@@ -41,6 +47,15 @@ console.log('🔌 Socket service initialized with HTTP server');
 // Middleware
 app.use(cors(corsOptions));
 app.use(express.json());
+
+// Add request logging middleware
+app.use('/api', (req, res, next) => {
+  // Only log important endpoints to reduce noise
+  if (req.path.includes('/bet-notification') || req.path.includes('/stats')) {
+    console.log(`🌐 API REQUEST: ${req.method} ${req.path} - Body:`, req.body);
+  }
+  next();
+});
 
 // In-memory storage for chat (replace with database in production)
 let chatMessages = [];
@@ -285,10 +300,10 @@ app.post('/api/user/register', async (req, res) => {
     }
     
     const userData = {
-      username: username,
-      firstName: firstName,
-      lastName: lastName,
-      telegramId: telegramId
+      username: username || `Player_${address.slice(-4)}`,
+      firstName: firstName || '',
+      lastName: lastName || '',
+      telegramId: telegramId || null
     };
     
     const success = await userService.registerUser(address, userData);
@@ -369,6 +384,40 @@ app.get('/api/admin/users', (req, res) => {
   }
 });
 
+// Ensure user is registered (for any wallet connection)
+app.post('/api/user/ensure-registered', async (req, res) => {
+  try {
+    const { address } = req.body;
+    
+    if (!address) {
+      return res.status(400).json({ error: 'Wallet address is required' });
+    }
+    
+    // Always register user, even with minimal data
+    const userData = {
+      username: `Player_${address.slice(-4)}`,
+      firstName: '',
+      lastName: '',
+      telegramId: null
+    };
+    
+    const success = await userService.registerUser(address, userData);
+    
+    if (success) {
+      res.json({ 
+        success: true, 
+        message: 'User ensured registered',
+        address: address
+      });
+    } else {
+      res.status(500).json({ error: 'Failed to register user' });
+    }
+  } catch (error) {
+    console.error('Error ensuring user registration:', error);
+    res.status(500).json({ error: 'Failed to register user' });
+  }
+});
+
 // ======================
 // CHAT API ROUTES
 // ======================
@@ -409,24 +458,81 @@ app.get('/api/game/state', async (req, res) => {
 // Notify about bet placement
 app.post('/api/game/bet-notification', async (req, res) => {
   try {
-    const { amount, address, username, telegramId, firstName, lastName } = req.body;
+    console.log(`🔔 BET NOTIFICATION API CALLED! Full request body:`, req.body);
+    const { amount, address, username, telegramId, firstName, lastName, referralCode } = req.body;
+    console.log(`📋 Extracted data: address="${address}", username="${username}", telegramId="${telegramId}", referralCode="${referralCode}"`);
     
     // Register/update user with full Telegram data if available
     if (address && username) {
+      // Use WebApp photoUrl first, fallback to Bot API
+      let telegramPhotoUrl = req.body.photoUrl || null;
+      
+      if (!telegramPhotoUrl && telegramId) {
+        try {
+          console.log(`📸 BET NOTIFICATION: WebApp photoUrl not available, fetching via Bot API for ${username} (ID: ${telegramId})`);
+          telegramPhotoUrl = await userService.fetchTelegramProfilePicture(telegramId);
+          if (telegramPhotoUrl) {
+            console.log(`✅ BET NOTIFICATION: Successfully fetched profile picture via Bot API: ${telegramPhotoUrl.substring(0, 50)}...`);
+          } else {
+            console.log(`❌ BET NOTIFICATION: Failed to fetch profile picture for ${username}`);
+          }
+        } catch (error) {
+          console.error(`❌ BET NOTIFICATION: Error fetching profile picture:`, error.message);
+        }
+      } else if (telegramPhotoUrl) {
+        console.log(`✅ BET NOTIFICATION: Using WebApp photoUrl for ${username}`);
+      }
+
       const userData = {
         username,
         telegramId,
         firstName,
-        lastName
+        lastName,
+        telegramPhotoUrl // Include the fetched photo URL
       };
+      console.log(`🔔 BET NOTIFICATION: Registering user ${username} (${address.slice(0,8)}...) with Telegram ID: ${telegramId}`);
       await userService.registerUser(address, userData);
+      
+      // Save username and photo in contract service dictionary for immediate use
+      const photoUrl = telegramPhotoUrl || req.body.photoUrl || null;
+      contractService.saveUsername(address, username, photoUrl);
+      console.log(`✅ BET NOTIFICATION: User registration completed for ${username}`);
+      console.log(`💾 BET NOTIFICATION: User data saved in contract service dict: username=${username}, photo=${photoUrl ? 'yes' : 'no'}`);
+      
+      // Handle referral registration if this is a new user with a referral code
+      if (referralCode && referralCode !== address) {
+        try {
+          console.log(`🎯 BET NOTIFICATION: Processing referral for new user ${address.slice(0,8)}... with code ${referralCode.slice(0,8)}...`);
+          
+          // Check if user already has activity
+          const existingPlayer = await statsService.getPlayerStats(address);
+          if (!existingPlayer || (existingPlayer.totalBets === 0 && existingPlayer.totalWins === 0)) {
+            // Check if referrer exists and has activity
+            const referrerStats = await statsService.getPlayerStats(referralCode);
+            if (referrerStats && (referrerStats.totalBets > 0 || referrerStats.totalWins > 0)) {
+              const result = await statsService.registerReferral({ address, referrer: referralCode });
+              if (result.success) {
+                console.log(`✅ BET NOTIFICATION: Referral registered successfully for ${address.slice(0,8)}... referred by ${referralCode.slice(0,8)}...`);
+              } else {
+                console.log(`❌ BET NOTIFICATION: Referral registration failed: ${result.error}`);
+              }
+            } else {
+              console.log(`❌ BET NOTIFICATION: Referrer ${referralCode.slice(0,8)}... has no activity, skipping referral`);
+            }
+          } else {
+            console.log(`❌ BET NOTIFICATION: User ${address.slice(0,8)}... already has activity, skipping referral`);
+          }
+        } catch (error) {
+          console.error(`❌ BET NOTIFICATION: Error processing referral:`, error.message);
+        }
+      }
     }
     
-    // Calculate net amount after 0.5 TON fee
-    const netAmount = Math.max(0, parseFloat(amount) - 0.5);
+    // Calculate net amount after 0.05 TON fee
+    const netAmount = Math.max(0, parseFloat(amount) - 0.05);
     
-    // Get the actual username from user service (or fallback)
-    const actualUsername = address ? userService.getUsername(address) : 'Unknown Player';
+    // Use the username that was sent from the frontend, or get from contract service dictionary as fallback
+    const actualUsername = username || (address ? contractService.getUsername(address) : 'Unknown Player');
     
     // Create bet notification message with net amount
     const betMessage = {
@@ -454,6 +560,22 @@ app.post('/api/game/bet-notification', async (req, res) => {
   } catch (error) {
     console.error('Error sending bet notification:', error);
     res.status(500).json({ error: 'Failed to send bet notification' });
+  }
+});
+
+// Clear user cache (for testing)
+app.post('/api/admin/clear-user', async (req, res) => {
+  try {
+    const { address } = req.body;
+    if (!address) {
+      return res.status(400).json({ error: 'Address is required' });
+    }
+    
+    const cleared = userService.clearUser(address);
+    res.json({ success: true, cleared, message: `User cache cleared for ${address.slice(0,8)}...` });
+  } catch (error) {
+    console.error('Error clearing user cache:', error);
+    res.status(500).json({ error: 'Failed to clear user cache' });
   }
 });
 
@@ -576,6 +698,325 @@ app.post('/api/admin/clear-cache', (req, res) => {
   }
 });
 
+// Debug endpoint to check registered users
+app.get('/api/debug/users', (req, res) => {
+  const users = userService.getAllUsers();
+  res.json({
+    totalUsers: users.length,
+    users: users.map(user => ({
+      address: user.address.slice(0, 8) + '...',
+      username: user.username,
+      telegramId: user.telegramId,
+      hasPhoto: !!user.telegramPhotoUrl,
+      lastSeen: user.lastSeen
+    }))
+  });
+});
+
+// ======================
+// STATS API ROUTES
+// ======================
+
+// Get player statistics
+app.get('/api/stats/player/:address', async (req, res) => {
+  try {
+    const { address } = req.params;
+    console.log(`📊 Stats requested for player: ${address}`);
+    
+    if (!address) {
+      return res.status(400).json({ error: 'Address is required' });
+    }
+
+    const stats = await statsService.getPlayerStats(address);
+    console.log(`📊 Player stats result:`, stats);
+    
+    if (!stats) {
+      // Return empty stats instead of null
+      const emptyStats = {
+        address,
+        totalBets: 0,
+        totalAmountBet: 0,
+        totalPrize: 0,
+        totalWins: 0,
+        referralCount: 0,
+        referralEarnings: 0,
+        referrer: null,
+        firstSeen: null,
+        lastSeen: null
+      };
+      console.log(`📊 No stats found, returning empty stats for ${address}`);
+      return res.json(emptyStats);
+    }
+
+    res.json(stats);
+  } catch (error) {
+    console.error('Error fetching player stats:', error);
+    res.status(500).json({ error: 'Failed to fetch player stats' });
+  }
+});
+
+// Get overall stats summary
+app.get('/api/stats/summary', async (req, res) => {
+  try {
+    const summary = await statsService.getSummary();
+    res.json(summary || {
+      totalPlayers: 0,
+      totalBets: 0,
+      totalVolume: 0,
+      totalPrizes: 0
+    });
+  } catch (error) {
+    console.error('Error fetching stats summary:', error);
+    res.status(500).json({ error: 'Failed to fetch summary' });
+  }
+});
+
+// Get recent games
+app.get('/api/stats/recent-games', async (req, res) => {
+  try {
+    const games = await statsService.getRecentGames();
+    
+    // Enhance games with current usernames (fast synchronous lookup)
+    const enhancedGames = (games || []).map(game => {
+      if (game.winnerAddress) {
+        const currentUserInfo = userService.getUserInfo(game.winnerAddress);
+        return {
+          ...game,
+          currentUsername: currentUserInfo.username,
+          displayName: currentUserInfo.username || game.username,
+          avatar: currentUserInfo.telegramPhotoUrl || null, // Use cached photo only
+          winnerAddress: game.winnerAddress // Include for frontend avatar generation
+        };
+      }
+      return game;
+    });
+    
+    res.json(enhancedGames);
+  } catch (error) {
+    console.error('Error fetching recent games:', error);
+    res.status(500).json({ error: 'Failed to fetch recent games' });
+  }
+});
+
+// Get leaderboard
+app.get('/api/stats/leaderboard', async (req, res) => {
+  try {
+    const { by = 'totalPrize', limit = 10 } = req.query;
+    const leaderboard = await statsService.getLeaderboard({ by, limit: parseInt(limit) });
+    res.json(leaderboard || []);
+  } catch (error) {
+    console.error('Error fetching leaderboard:', error);
+    res.status(500).json({ error: 'Failed to fetch leaderboard' });
+  }
+});
+
+// ======================
+// REFERRAL API ROUTES
+// ======================
+
+// Register referral relationship
+app.post('/api/referral/register', async (req, res) => {
+  try {
+    const { address, referrer, telegramId, username } = req.body;
+    
+    console.log(`🎯 MANUAL REFERRAL REGISTRATION API CALLED!`, {
+      address: address?.slice(0, 8) + '...',
+      referrer: referrer?.slice(0, 8) + '...',
+      telegramId,
+      username,
+      fullBody: req.body
+    });
+
+    if (!address || !referrer) {
+      console.log(`❌ Referral rejected: Missing address or referrer`);
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Both address and referrer are required' 
+      });
+    }
+
+    // Always attempt referral registration - let the service decide
+    console.log(`🎯 Attempting referral registration: ${address.slice(0, 8)}... referred by ${referrer.slice(0, 8)}...`);
+    
+    const result = await statsService.registerReferral({ address, referrer });
+    
+    if (result.success) {
+      console.log(`✅ MANUAL REFERRAL SUCCESS: ${address.slice(0, 8)}... referred by ${referrer.slice(0, 8)}...`);
+      
+      // Register user with Telegram data if provided
+      if (telegramId || username) {
+        await userService.registerUser(address, {
+          telegramId,
+          username,
+          firstName: username,
+          lastName: ''
+        });
+      }
+      
+      res.json({
+        success: true,
+        message: 'Referral registered successfully',
+        referralCode: referrer,
+        botLink: 'https://t.me/SniffThePotBot_bot/sloot'
+      });
+    } else {
+      console.log(`❌ MANUAL REFERRAL FAILED: ${result.error}`);
+      res.status(400).json({
+        success: false,
+        error: result.error
+      });
+    }
+  } catch (error) {
+    console.error('Error registering referral:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to register referral' 
+    });
+  }
+});
+
+// Get referral info for a user
+app.get('/api/referral/info/:address', async (req, res) => {
+  try {
+    const { address } = req.params;
+    
+    console.log(`📊 REFERRAL INFO API CALLED for address: ${address?.slice(0, 8)}...`);
+    
+    if (!address) {
+      return res.status(400).json({ error: 'Address is required' });
+    }
+
+    const stats = await statsService.getPlayerStats(address);
+    console.log('📊 Referral info - stats from getPlayerStats:', stats);
+    
+    if (!stats) {
+      return res.json({
+        address,
+        referrer: null,
+        referralCount: 0,
+        referralEarnings: 0,
+        canRefer: true,
+        referralCode: address,
+        botLink: 'https://t.me/SniffThePotBot_bot/sloot'
+      });
+    }
+
+    const response = {
+      address,
+      referrer: stats.referrer,
+      referralCount: stats.referralCount || 0,
+      referralEarnings: stats.referralEarnings || 0,
+      canRefer: true,
+      referralCode: address,
+      botLink: 'https://t.me/SniffThePotBot_bot/sloot'
+    };
+    
+    console.log('📊 Referral info - response:', response);
+    res.json(response);
+  } catch (error) {
+    console.error('Error fetching referral info:', error);
+    res.status(500).json({ error: 'Failed to fetch referral info' });
+  }
+});
+
+// Get referral leaderboard (top referrers)
+app.get('/api/referral/leaderboard', async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+    
+    if (!statsService.isReady()) {
+      return res.json([]);
+    }
+
+    const leaderboard = await statsService.collections.players
+      .find({ referralCount: { $gt: 0 } })
+      .sort({ referralEarnings: -1, referralCount: -1 })
+      .limit(parseInt(limit))
+      .project({ 
+        address: 1, 
+        referralCount: 1, 
+        referralEarnings: 1, 
+        usernameSnapshot: 1,
+        _id: 0 
+      })
+      .toArray();
+
+    // Enhance with current usernames
+    const enhancedLeaderboard = leaderboard.map(entry => {
+      const currentUserInfo = userService.getUserInfo(entry.address);
+      return {
+        ...entry,
+        username: currentUserInfo.username || entry.usernameSnapshot || `Player ${entry.address.slice(0, 6)}...`,
+        avatar: currentUserInfo.telegramPhotoUrl
+      };
+    });
+
+    res.json(enhancedLeaderboard);
+  } catch (error) {
+    console.error('Error fetching referral leaderboard:', error);
+    res.status(500).json({ error: 'Failed to fetch referral leaderboard' });
+  }
+});
+
+// Test endpoint to manually test referral system
+app.post('/api/referral/test', async (req, res) => {
+  try {
+    const { referrer, newUser } = req.body;
+    
+    if (!referrer || !newUser) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Both referrer and newUser addresses are required' 
+      });
+    }
+
+    console.log(`🧪 TESTING REFERRAL: ${referrer.slice(0,8)}... referring ${newUser.slice(0,8)}...`);
+
+    // Check if referrer exists and has activity
+    const referrerStats = await statsService.getPlayerStats(referrer);
+    if (!referrerStats || (referrerStats.totalBets === 0 && referrerStats.totalWins === 0)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Referrer must have betting activity' 
+      });
+    }
+
+    // Check if new user has no activity
+    const newUserStats = await statsService.getPlayerStats(newUser);
+    if (newUserStats && (newUserStats.totalBets > 0 || newUserStats.totalWins > 0)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'New user already has betting activity' 
+      });
+    }
+
+    // Register the referral
+    const result = await statsService.registerReferral({ address: newUser, referrer });
+    
+    if (result.success) {
+      console.log(`✅ TEST SUCCESS: Referral registered for ${newUser.slice(0,8)}...`);
+      res.json({
+        success: true,
+        message: 'Test referral registered successfully',
+        referrer,
+        newUser
+      });
+    } else {
+      console.log(`❌ TEST FAILED: ${result.error}`);
+      res.status(400).json({
+        success: false,
+        error: result.error
+      });
+    }
+  } catch (error) {
+    console.error('Error testing referral:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to test referral' 
+    });
+  }
+});
+
 // ======================
 // SOCKET.IO CHAT FUNCTIONALITY
 // ======================
@@ -651,7 +1092,9 @@ socketService.setupSocketEventHandlers((socket) => {
         firstName: data.firstName,
         lastName: data.lastName
       };
+      console.log(`🎰 SOCKET BET: Registering user ${data.username} (${data.address?.slice(0,8)}...) with Telegram ID: ${data.telegramId}`);
       await userService.registerUser(data.address, userData);
+      console.log(`✅ SOCKET BET: User registration completed for ${data.username}`);
     }
     
     // Broadcast bet notification using the actual username
@@ -675,6 +1118,13 @@ socketService.setupSocketEventHandlers((socket) => {
     socket.broadcast.emit('user:typing', {
       username: user.username,
       isTyping
+    });
+  });
+
+  // Handle online count request
+  socket.on('getOnlineCount', () => {
+    socket.emit('onlineCount', {
+      count: connectedUsers.size
     });
   });
 
@@ -775,6 +1225,34 @@ async function pollContractState() {
     const finalBettors = (adminAutomation.isSimulationRunning && currentBettors.length > 0) ? 
       currentBettors : 
       (currentBettors.length > 0 ? currentBettors : allBettors);
+    
+    // Detect new bets and record them to stats
+    const previousBettors = globalContractState.bettors || [];
+    const newBets = finalBettors.filter(current => 
+      !previousBettors.find(prev => 
+        prev.fullAddress === current.fullAddress && 
+        prev.amount === current.amount
+      )
+    );
+    
+    // Record new bets to stats
+    if (newBets.length > 0) {
+      console.log(`📊 Detected ${newBets.length} new bets, recording to stats...`);
+      for (const bet of newBets) {
+        try {
+          await statsService.recordBet({
+            address: bet.fullAddress,
+            amount: bet.amount,
+            roundNumber: adminAutomation.getStatus()?.currentRound?.roundNumber || null,
+            username: bet.username || bet.displayName,
+            timestamp: bet.timestamp || Date.now()
+          });
+          console.log(`✅ Recorded bet to stats: ${bet.username || bet.fullAddress} - ${bet.amount} TON`);
+        } catch (error) {
+          console.error(`❌ Failed to record bet for ${bet.username}:`, error.message);
+        }
+      }
+    }
     
     // Update global state
     globalContractState.contractState = contractState;
@@ -921,8 +1399,16 @@ server.listen(PORT, '0.0.0.0', () => {
   
   // Initialize services
   adminAutomation.initialize()
-    .then(() => {
+    .then(async () => {
       console.log('✅ Admin automation initialized');
+      
+      // Initialize stats service
+      try {
+        await statsService.initialize();
+        console.log('✅ Stats service initialized');
+      } catch (error) {
+        console.warn('⚠️ Stats service initialization failed:', error.message);
+      }
       
       // Inject socket service into admin automation for winner broadcasting
       adminAutomation.setSocketService(socketService);
