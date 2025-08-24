@@ -243,37 +243,7 @@ const ReferralSystem = () => {
         </>
       )}
 
-      {/* Referral Registration */}
-      {referralCode && referralCode !== address && (
-        <div className="referral-card referral-register">
-          <div className="referral-card-header">
-            <Users size={18} />
-            <span>Register Referral</span>
-          </div>
-          <div className="referral-code">
-            Referral Code: {referralCode.slice(0, 8)}...{referralCode.slice(-8)}
-          </div>
-          <div className="referral-subtitle">
-            {referralInfo?.referrer ? 
-              'You already have a referrer' : 
-              'Register this referral to earn 10% of our fees when they win'
-            }
-          </div>
-          
-          {error && <div className="referral-error">{error}</div>}
-          {success && <div className="referral-success">{success}</div>}
-          
-          <button 
-            className="referral-register-btn"
-            onClick={handleRegisterReferral}
-            disabled={registering || referralInfo?.referrer}
-          >
-            {registering ? 'Registering...' : 
-             referralInfo?.referrer ? 'Already Referred' : 'Register Referral'
-            }
-          </button>
-        </div>
-      )}
+
 
       {/* How it works */}
       <div className="referral-card referral-info">

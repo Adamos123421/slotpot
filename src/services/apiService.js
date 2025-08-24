@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://advantage-discovered-abraham-incident.trycloudflare.com/';
+const API_BASE_URL = 'http://localhost:5002';
 
 class ApiService {
   constructor() {
