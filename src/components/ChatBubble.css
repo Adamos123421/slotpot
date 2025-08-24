@@ -1,6 +1,6 @@
 .chat-bubble {
   position: fixed;
-  bottom: 90px; /* Moved down more */
+  bottom: 95px; /* Moved down more */
   left: 20px;
   z-index: 999;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -47,7 +47,7 @@
 /* Mobile responsive */
 @media (max-width: 768px) {
   .chat-bubble {
-    bottom: 80px; /* Moved down more on mobile */
+    bottom: 90px; /* Moved down more on mobile */
     left: 15px;
     padding: 14px 18px; /* Made even bigger on mobile */
     font-size: 15px; /* Made text even bigger on mobile */
