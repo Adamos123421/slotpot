@@ -41,15 +41,6 @@ class StatsService {
 
       this.initialized = true;
       console.log('📊 StatsService initialized');
-      
-      // Process any pending user registrations
-      try {
-        const userService = require('./userService');
-        await userService.processPendingRegistrations();
-      } catch (error) {
-        console.error('❌ Error processing pending registrations:', error.message);
-      }
-      
       return true;
     } catch (error) {
       console.error('❌ Failed to initialize StatsService:', error.message);
@@ -156,39 +147,20 @@ class StatsService {
         { upsert: true }
       );
 
-      // Referral commission system:
-      // 1. Winner gets 10% of prize as referral bonus
-      // 2. Winner's referrer gets 0.5% of total prize (10% of the 5% fee we take)
+      // Referral commission (0.25% of prize) to winner's referrer
       const winnerDoc = await this.collections.players.findOne({ address }, { projection: { referrer: 1 } });
       const referrer = winnerDoc?.referrer;
-      
-      if (prize > 0 && !winnerData.isSimulation) {
-        // Winner gets 10% of prize as referral bonus
-        const winnerReferralBonus = +(prize * 0.10);
+      if (referrer && prize > 0 && !winnerData.isSimulation) {
+        const commission = +(prize * 0.0025);
         await this.collections.players.updateOne(
-          { address },
+          { address: referrer.toString() },
           {
-            $inc: { referralEarnings: winnerReferralBonus }
-          }
+            $set: { address: referrer.toString() },
+            $inc: { referralEarnings: commission },
+            $setOnInsert: { firstSeen: new Date(timestamp), totalBets: 0, totalAmountBet: 0, totalWins: 0, totalPrize: 0, referralCount: 0 },
+          },
+          { upsert: true }
         );
-        
-        // If winner has a referrer, give them 0.5% of total prize
-        if (referrer) {
-          const referrerCommission = +(prize * 0.005); // 0.5% of total prize
-          await this.collections.players.updateOne(
-            { address: referrer.toString() },
-            {
-              $set: { address: referrer.toString() },
-              $inc: { referralEarnings: referrerCommission },
-              $setOnInsert: { firstSeen: new Date(timestamp), totalBets: 0, totalAmountBet: 0, totalWins: 0, totalPrize: 0, referralCount: 0 },
-            },
-            { upsert: true }
-          );
-          
-          console.log(`🎯 Referral commission: Winner ${address.slice(0, 8)}... got ${winnerReferralBonus.toFixed(6)} TON bonus, referrer ${referrer.slice(0, 8)}... got ${referrerCommission.toFixed(6)} TON commission (0.5% of prize)`);
-        } else {
-          console.log(`🎯 Referral bonus: Winner ${address.slice(0, 8)}... got ${winnerReferralBonus.toFixed(6)} TON bonus (no referrer)`);
-        }
       }
 
       return true;
@@ -200,127 +172,42 @@ class StatsService {
 
   // Register referral relationship (one-time set)
   async registerReferral({ address, referrer }) {
-    console.log(`🎯 StatsService.registerReferral called: ${address?.slice(0, 8)}... referred by ${referrer?.slice(0, 8)}...`);
-    
-    if (!this.isReady()) {
-      console.log(`❌ StatsService not ready`);
-      return { success: false, error: 'Stats service not ready' };
-    }
-    
-    if (!address || !referrer) {
-      console.log(`❌ Missing address or referrer`);
-      return { success: false, error: 'Invalid parameters' };
-    }
-    
+    if (!this.isReady() || !address || !referrer) return { success: false, error: 'Invalid parameters' };
     const addr = address.toString();
     const ref = referrer.toString();
-    
-    if (addr === ref) {
-      console.log(`❌ Self referral not allowed`);
-      return { success: false, error: 'Self referral not allowed' };
-    }
+    if (addr === ref) return { success: false, error: 'Self referral not allowed' };
 
-    // Check if player already has a referrer
-    const player = await this.collections.players.findOne({ address: addr }, { projection: { referrer: 1, totalBets: 1, totalWins: 1 } });
+    const player = await this.collections.players.findOne({ address: addr }, { projection: { referrer: 1 } });
     if (player?.referrer) {
-      console.log(`❌ Player ${addr.slice(0, 8)}... already has referrer ${player.referrer.slice(0, 8)}...`);
       return { success: false, error: 'Referral already set' };
     }
 
-    // Check if player has betting activity (optional check - can be removed if you want to allow referrals for existing users)
-    if (player && (player.totalBets > 0 || player.totalWins > 0)) {
-      console.log(`❌ Player ${addr.slice(0, 8)}... already has betting activity (${player.totalBets} bets, ${player.totalWins} wins)`);
-      return { success: false, error: 'User already has betting activity. Referrals only work for new users.' };
-    }
+    // Set referrer on player
+    await this.collections.players.updateOne(
+      { address: addr },
+      {
+        $set: { referrer: ref },
+        $setOnInsert: { firstSeen: new Date(), totalBets: 0, totalAmountBet: 0, totalWins: 0, totalPrize: 0, referralCount: 0, referralEarnings: 0 },
+      },
+      { upsert: true }
+    );
 
-    // Check if referrer exists, and if not, create them in the database
-    let referrerStats = await this.collections.players.findOne({ address: ref });
-    if (!referrerStats) {
-      console.log(`📊 Referrer ${ref.slice(0, 8)}... not found in database, creating entry...`);
-      try {
-        await this.collections.players.updateOne(
-          { address: ref },
-          {
-            $setOnInsert: { 
-              firstSeen: new Date(),
-              lastSeen: new Date(),
-              totalBets: 0,
-              totalAmountBet: 0,
-              totalWins: 0,
-              totalPrize: 0,
-              referralCount: 0,
-              referralEarnings: 0,
-              usernameSnapshot: `Player_${ref.slice(-4)}`
-            }
-          },
-          { upsert: true }
-        );
-        referrerStats = await this.collections.players.findOne({ address: ref });
-        console.log(`✅ Created referrer entry in database: ${ref.slice(0, 8)}...`);
-      } catch (error) {
-        console.error(`❌ Failed to create referrer entry: ${error.message}`);
-        return { success: false, error: 'Failed to create referrer entry in database' };
-      }
-    }
+    // Increment referral count on referrer
+    await this.collections.players.updateOne(
+      { address: ref },
+      {
+        $inc: { referralCount: 1 },
+        $setOnInsert: { firstSeen: new Date(), totalBets: 0, totalAmountBet: 0, totalWins: 0, totalPrize: 0, referralCount: 1, referralEarnings: 0 },
+      },
+      { upsert: true }
+    );
 
-    try {
-      // Set referrer on player
-      await this.collections.players.updateOne(
-        { address: addr },
-        {
-          $set: { referrer: ref },
-          $setOnInsert: { firstSeen: new Date(), totalBets: 0, totalAmountBet: 0, totalWins: 0, totalPrize: 0, referralCount: 0, referralEarnings: 0 },
-        },
-        { upsert: true }
-      );
-
-      // Ensure referrer exists in database (no need to increment referralCount since it's calculated dynamically)
-      console.log(`🎯 Ensuring referrer ${ref.slice(0, 8)}... exists in database`);
-      const updateResult = await this.collections.players.updateOne(
-        { address: ref },
-        {
-          $setOnInsert: { firstSeen: new Date(), totalBets: 0, totalAmountBet: 0, totalWins: 0, totalPrize: 0, referralEarnings: 0 },
-        },
-        { upsert: true }
-      );
-      
-      console.log(`🎯 Referrer update result:`, {
-        matchedCount: updateResult.matchedCount,
-        modifiedCount: updateResult.modifiedCount,
-        upsertedCount: updateResult.upsertedCount,
-        upsertedId: updateResult.upsertedId
-      });
-
-      console.log(`✅ Referral registered successfully: ${addr.slice(0, 8)}... referred by ${ref.slice(0, 8)}...`);
-      return { success: true };
-    } catch (error) {
-      console.error(`❌ Database error during referral registration:`, error);
-      return { success: false, error: 'Database error during referral registration' };
-    }
+    return { success: true };
   }
 
   async getPlayerStats(address) {
     if (!this.isReady() || !address) return null;
-    
-    const addr = address.toString();
-    
-    // Get the player's basic stats
-    const player = await this.collections.players.findOne({ address: addr }, { projection: { _id: 0 } });
-    
-    if (!player) return null;
-    
-    // Calculate referral count dynamically by counting how many people have this address as referrer
-    const referralCount = await this.collections.players.countDocuments({ referrer: addr });
-    console.log(`📊 getPlayerStats for ${addr.slice(0, 8)}... - calculated referralCount:`, referralCount);
-    
-    // Return player stats with calculated referral count
-    const result = {
-      ...player,
-      referralCount: referralCount
-    };
-    
-    console.log(`📊 getPlayerStats for ${addr.slice(0, 8)}... - final result:`, result);
-    return result;
+    return this.collections.players.findOne({ address: address.toString() }, { projection: { _id: 0 } });
   }
 
   async getLeaderboard({ by = 'totalPrize', limit = 10 } = {}) {
@@ -336,7 +223,7 @@ class StatsService {
   async getSummary() {
     if (!this.isReady()) return { connected: false };
 
-    const [totals, winnersCount, betsCount, totalReferrals] = await Promise.all([
+    const [totals, winnersCount, betsCount] = await Promise.all([
       this.collections.players.aggregate([
         {
           $group: {
@@ -346,12 +233,12 @@ class StatsService {
             totalBets: { $sum: '$totalBets' },
             totalAmountBet: { $sum: '$totalAmountBet' },
             totalReferralEarnings: { $sum: '$referralEarnings' },
+            totalReferrals: { $sum: '$referralCount' },
           },
         },
       ]).toArray(),
       this.collections.games.estimatedDocumentCount(),
       this.collections.bets.estimatedDocumentCount(),
-      this.collections.players.countDocuments({ referrer: { $exists: true, $ne: null } }),
     ]);
 
     const t = totals[0] || {};
@@ -362,7 +249,7 @@ class StatsService {
       totalBets: t.totalBets || 0,
       totalAmountBet: t.totalAmountBet || 0,
       totalReferralEarnings: t.totalReferralEarnings || 0,
-      totalReferrals: totalReferrals || 0,
+      totalReferrals: t.totalReferrals || 0,
       totalGames: winnersCount || 0,
       totalBetRecords: betsCount || 0,
     };
