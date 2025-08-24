@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { TonIcon } from './IconComponents';
-
+import soundService from '../services/soundService';
 
 const SimpleCarousel = ({ 
   players, 
@@ -17,12 +17,12 @@ const SimpleCarousel = ({
   const winnerShowcaseTimeoutRef = useRef();
   
   // Card dimensions (matching roulette example)
-  const CARD_WIDTH = 20; // 75px + 3px margin on each side
+  const CARD_WIDTH = 81; // 75px + 3px margin on each side
   
   // Lock players when spinning starts to prevent them from changing during animation
   useEffect(() => {
     if (isSpinning && contractWinner && players.length > 0) {
-      // Locking players for animation
+      console.log('🔒 Locking players for animation:', players);
       setLockedPlayers([...players]);
     }
   }, [isSpinning, contractWinner, players]);
@@ -47,9 +47,7 @@ const SimpleCarousel = ({
     // Always show the amount if it exists, regardless of isRealPlayer
     const amount = player.bet || player.amount || 0;
     const isActive = amount > 0;
-    const avatar = player.avatar && player.avatar !== '❓' && player.avatar !== '👤' ? 
-      player.avatar : 
-      `https://robohash.org/${player.address || player.name}.png?size=100x100`;
+    const avatar = player.avatar && player.avatar !== '❓' ? player.avatar : "/img/unknown.webp";
     const username = player.username || player.displayName || player.name || 'Player';
     const bet = amount.toFixed(3);
     
@@ -82,8 +80,8 @@ const SimpleCarousel = ({
     const row = document.createElement('div');
     row.className = 'roulette-row';
     
-    // Create enough copies to ensure smooth infinite scrolling (10 copies)
-    for (let copyIndex = 0; copyIndex < 10; copyIndex++) {
+    // Create enough copies to ensure smooth infinite scrolling (50 copies)
+    for (let copyIndex = 0; copyIndex < 50; copyIndex++) {
       effectivePlayers.forEach((player, playerIndex) => {
         const card = document.createElement('div');
         card.className = 'roulette-card';
@@ -97,7 +95,7 @@ const SimpleCarousel = ({
 
   // Idle movement - constant speed with true infinite scroll
   const startIdleMovement = useCallback(() => {
-    if (!wheelRef.current || wheelState !== 'idle' || !effectivePlayers.length) return;
+    if (!wheelRef.current || wheelState !== 'idle') return;
     
     const animate = () => {
       if (wheelState !== 'idle') return;
@@ -141,28 +139,22 @@ const SimpleCarousel = ({
   const findWinnerPosition = useCallback((winner) => {
     if (!winner || !effectivePlayers.length) return -1;
     
+    console.log('Looking for winner:', winner);
+    console.log('Available players:', effectivePlayers);
+    
     for (let i = 0; i < effectivePlayers.length; i++) {
       const player = effectivePlayers[i];
-      if (!player) continue;
-      
-      // Try multiple matching strategies
-      const addressMatch = (
-        (player.address && (player.address === winner.winner || player.address === winner.fullAddress)) ||
-        (player.fullAddress && (player.fullAddress === winner.winner || player.fullAddress === winner.fullAddress))
-      );
-      
-      const usernameMatch = (
-        (player.username && player.username === winner.username) ||
-        (player.displayName && player.displayName === winner.displayName) ||
-        (player.username && winner.username && player.username === winner.username) ||
-        (player.displayName && winner.winnerName && player.displayName === winner.winnerName)
-      );
-      
-      if (addressMatch || usernameMatch) {
+      if (
+        (player && player.address && (player.address === winner.winner || player.address === winner.fullAddress)) ||
+        (player && player.fullAddress && (player.fullAddress === winner.winner || player.fullAddress === winner.fullAddress)) ||
+        (player && player.username && player.username === winner.username) ||
+        (player && player.displayName && player.displayName === winner.displayName)
+      ) {
+        console.log(`Found winner at position ${i}:`, player);
         return i;
       }
     }
-    
+    console.warn('Winner not found in player list');
     return -1;
   }, [effectivePlayers]);
 
@@ -170,30 +162,22 @@ const SimpleCarousel = ({
   const spinWheel = useCallback((targetWinner) => {
     if (wheelState === 'spinning' || !wheelRef.current) return;
     
+    console.log('Starting spin with winner:', targetWinner);
+    
+    // Play launch sound when spin starts
+    soundService.playLaunch();
+    
     setWheelState('spinning');
     stopIdleMovement();
     
     const winnerPosition = findWinnerPosition(targetWinner);
     if (winnerPosition === -1) {
-      // Fallback 1: Try to find by username pattern (e.g., "Player_3tsb" -> look for any player with "3tsb")
-      const winnerUsername = targetWinner.username || targetWinner.winnerName;
-      if (winnerUsername && winnerUsername.includes('_')) {
-        const usernameSuffix = winnerUsername.split('_')[1];
-        for (let i = 0; i < effectivePlayers.length; i++) {
-          const player = effectivePlayers[i];
-          if (player && player.username && player.username.includes(usernameSuffix)) {
-            performSpin(i, targetWinner);
+      console.warn('Winner not found in player list, spinning randomly');
+      // If winner not found, still spin but land on first player
+      const fallbackPosition = 0;
+      performSpin(fallbackPosition, targetWinner);
             return;
           }
-        }
-      }
-      
-      // Fallback 2: If no match found, land on first active player
-      const firstActivePlayer = effectivePlayers.findIndex(p => p && (p.bet > 0 || p.amount > 0));
-      const fallbackPosition = firstActivePlayer !== -1 ? firstActivePlayer : 0;
-      performSpin(fallbackPosition, targetWinner);
-      return;
-    }
           
     performSpin(winnerPosition, targetWinner);
     
@@ -212,28 +196,37 @@ const SimpleCarousel = ({
     const cardMargin = firstCard ? parseInt(getComputedStyle(firstCard).marginLeft) + parseInt(getComputedStyle(firstCard).marginRight) : 6;
     const totalCardSpacing = actualCardWidth + cardMargin;
     
+    console.log(`📏 Card measurements: width=${actualCardWidth}px, margin=${cardMargin}px, total=${totalCardSpacing}px`);
+    console.log(`🎯 Winner found at array position: ${winnerPosition}`);
+    
     // CLASSIC SLOT MACHINE ANIMATION: Fast slide then slow down to winner
     const cycleLength = effectivePlayers.length * totalCardSpacing;
     const currentAbsolutePosition = Math.abs(currentPosition.current);
     
     // Calculate how far we need to slide to get the winner centered
-    // The winner card should be perfectly centered in the wheel
+    // We want to slide fast past the winner, then slow down and land on it
     const winnerOffset = winnerPosition * totalCardSpacing;
     
     // Slide at least 3 full cycles to create that "fast spinning" effect
     // Then land precisely on the winner in the next visible cycle
-    const minimumSpinDistance = cycleLength * 3; // At least 3 full cycles
+    const minimumSpinDistance = cycleLength * 2; // At least 3 full cycles
     const targetCycle = Math.ceil((currentAbsolutePosition + minimumSpinDistance) / cycleLength);
     const finalWinnerPosition = (targetCycle * cycleLength) + winnerOffset;
+    const finalPosition = -(finalWinnerPosition + (actualCardWidth / 2) - centerOffset+75);
     
-    // Calculate the exact position to center the winner card
-    // The center of the winner card should align with the center of the wheel
-    // Add -50px adjustment to land exactly on the winner
-    const finalPosition = -(finalWinnerPosition + (actualCardWidth / 2) - centerOffset - 20);
+    console.log(`🎰 Classic slot machine calculation:`);
+    console.log(`   - Current position: ${currentPosition.current}px`);
+    console.log(`   - Winner position in array: ${winnerPosition}`);
+    console.log(`   - Winner offset: ${winnerOffset}px`);
+    console.log(`   - Minimum spin distance: ${minimumSpinDistance}px`);
+    console.log(`   - Target cycle: ${targetCycle}`);
+    console.log(`   - Final winner position: ${finalWinnerPosition}px`);
+    console.log(`   - Final position: ${finalPosition}px`);
+    console.log(`   - Total slide distance: ${Math.abs(finalPosition - currentPosition.current)}px`);
     
     // Start ticking sound for the spinning effect
     let tickInterval = setInterval(() => {
-              // Spin sound removed for performance
+      soundService.playSpinWithVolume(0.3);
     }, 100); // Fast ticking initially
     
     // STAGE 1: Fast spinning for 2 seconds
@@ -241,22 +234,12 @@ const SimpleCarousel = ({
     wheel.style.transitionDuration = '2000ms';
     
     // Slide 80% of the way during fast phase
-    const fastPhasePosition = currentPosition.current + ((finalPosition - currentPosition.current) * 1);
+    const fastPhasePosition = currentPosition.current + ((finalPosition - currentPosition.current) * 0.1);
     wheel.style.transform = `translate3d(${fastPhasePosition}px, 0px, 0px)`;
     currentPosition.current = fastPhasePosition;
     
     // STAGE 2: Slow down dramatically for final 20% over 3 seconds
-    setTimeout(() => {
-      // Slower ticking sound
-      clearInterval(tickInterval);
-      tickInterval = setInterval(() => {
-        // Spin sound removed for performance
-      }, 300); // Much slower ticking
-      
-      wheel.style.transitionTimingFunction = 'cubic-bezier(0.05, 0.1, 0.05, 1)';
-      wheel.style.transitionDuration = '3000ms';
-      wheel.style.transform = `translate3d(${finalPosition}px, 0px, 0px)`;
-      currentPosition.current = finalPosition;
+   
       
       // Stop ticking after slowdown completes
       setTimeout(() => {
@@ -267,27 +250,24 @@ const SimpleCarousel = ({
     
     // After total animation (2s + 3s = 5s), show winner
     setTimeout(() => {
+      console.log('Classic slot machine animation completed, showing winner');
       setWheelState('winner');
       
       // Highlight the winner card
       const allCards = wheel.querySelectorAll('.roulette-card');
+      console.log(`🎯 Highlighting winner at position ${winnerPosition} out of ${effectivePlayers.length} players`);
       
-      // Find the card that should be in the center (winner card)
-      const centerCardIndex = Math.round(Math.abs(finalPosition) / totalCardSpacing);
-      
-      
-      
-      // Verify the center card is indeed the winner
-      const centerCard = allCards[centerCardIndex];
-      if (centerCard) {
-        const centerCardPlayerIndex = centerCardIndex % effectivePlayers.length;
-        if (centerCardPlayerIndex === winnerPosition) {
-        } else {
+      allCards.forEach((card, index) => {
+        const cardPlayerIndex = index % effectivePlayers.length;
+        if (cardPlayerIndex === winnerPosition) {
+          card.classList.add('winner-highlight');
+          console.log(`✨ Highlighted card at index ${index} (player ${cardPlayerIndex})`);
         }
-      }
+      });
       
       // After showcasing winner for 4 seconds, go to finished state
       winnerShowcaseTimeoutRef.current = setTimeout(() => {
+        console.log('Winner showcase complete, entering finished state');
         
         // Remove winner highlights
         const highlightedCards = wheel.querySelectorAll('.winner-highlight');
@@ -314,13 +294,16 @@ const SimpleCarousel = ({
   useEffect(() => {
     if (isSpinning && contractWinner && wheelState === 'waiting') {
       // Backend responded with winner, start spinning
+      console.log('Starting roulette spin with winner:', contractWinner);
       spinWheel(contractWinner);
     } else if (isSpinning && !contractWinner && wheelState === 'idle') {
       // Bet placed, stop and wait for backend
+      console.log('Stopping wheel, waiting for winner...');
       setWheelState('waiting');
       stopIdleMovement();
     } else if (!isSpinning && wheelState !== 'idle' && wheelState !== 'winner' && wheelState !== 'finished') {
       // Reset to idle state (but don't interrupt winner showcase or finished state)
+      console.log('Resetting to idle state');
       setWheelState('idle');
     }
   }, [isSpinning, contractWinner, wheelState, spinWheel, stopIdleMovement]);
@@ -329,6 +312,7 @@ const SimpleCarousel = ({
   useEffect(() => {
     // If we're in finished state and there's no winner (new game starting), reset to idle
     if (wheelState === 'finished' && !contractWinner && !isSpinning) {
+      console.log('New game detected - resetting from finished to idle');
       setWheelState('idle');
     }
   }, [wheelState, contractWinner, isSpinning]);
