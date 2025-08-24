@@ -25,8 +25,8 @@ import { blockConsole, restoreConsole, blockExceptErrors } from './utils/console
 import './App.css';
 import './components/Header.css';
 
-// TON Connect manifest URL - use remote manifest to avoid 500 errors
-const manifestUrl = "https://raw.githubusercontent.com/Adamos123421/slotpot/main/manifest.json";
+// TON Connect manifest URL - use appropriate manifest based on environment
+const manifestUrl ="https://raw.githubusercontent.com/Adamos123421/slotpot/main/manifests.json"
 
 function AppContent() {
   // Debug mode state
