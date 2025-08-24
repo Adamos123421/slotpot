@@ -214,56 +214,20 @@ export class JackpotContract {
   // Transaction builders for sending to the contract
   buildBetTransaction(betAmount, senderAddress) {
     // Ensure betAmount is a valid number
-    console.log(`🔍 buildBetTransaction input:`, { betAmount, type: typeof betAmount });
     const numericBetAmount = Number(betAmount);
-    console.log(`🔍 After Number() conversion:`, { numericBetAmount, isNaN: isNaN(numericBetAmount) });
     if (isNaN(numericBetAmount)) {
-      console.log('Invalid bet amount:', betAmount);
       throw new Error(`Invalid bet amount: ${betAmount}`);
     }
     
     // Add 0.05 TON fee to the bet amount for the transaction
     const totalAmount = numericBetAmount + 0.05;
-    console.log(`🔍 totalAmount calculation:`, { numericBetAmount, totalAmount });
     // Ensure proper string formatting for toNano function
     const totalAmountString = totalAmount.toFixed(9); // Use 9 decimal places for precision
-    console.log(`🔍 totalAmountString:`, totalAmountString);
     const totalAmountNano = toNano(totalAmountString);
     // Generate unique query_id for this bet
     const queryId = Date.now() * 1000 + Math.floor(Math.random() * 1000);
     
-    console.log(`🔧 Building bet transaction:`, {
-      userBetAmount: numericBetAmount + ' TON',
-      feeAmount: '0.05 TON',
-      totalAmount: totalAmount + ' TON',
-      totalAmountNano: totalAmountNano.toString(),
-      queryId,
-      senderAddress,
-      contractAddress: this.contractAddress.toString(),
-      // Check if contract address equals sender address (this would be wrong!)
-      addressesMatch: this.contractAddress.toString() === senderAddress,
-      usingEnvAddress: !!process.env.REACT_APP_CONTRACT_ADDRESS
-    });
-    
     const payload = ContractMessages.placeBet(queryId);
-    console.log(`📦 PlaceBet message payload:`, payload.toBoc().toString('base64'));
-    
-    // Verify the message structure immediately
-    try {
-      const cell = payload;
-      const slice = cell.beginParse();
-      const opCode = slice.loadUint(32);
-      const decodedQueryId = slice.loadUint(64);
-      
-      console.log(`✅ Message verification:`, {
-        opCode: `0x${opCode.toString(16).padStart(2, '0')}`,
-        queryId: decodedQueryId,
-        isCorrectOpCode: opCode === 0x03,
-        matches: queryId === decodedQueryId
-      });
-    } catch (error) {
-      console.error('❌ Message verification failed:', error);
-    }
     
     const transaction = {
       validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes
@@ -276,15 +240,7 @@ export class JackpotContract {
       ]
     };
     
-    console.log(`🎯 Final transaction will be sent to:`, {
-      destinationAddress: transaction.messages[0].address,
-      amount: transaction.messages[0].amount + ' nanotons',
-      userBetAmount: numericBetAmount + ' TON',
-      feeAmount: '0.05 TON',
-      totalAmount: totalAmount + ' TON',
-      senderAddress: senderAddress,
-      isGoingToContract: transaction.messages[0].address !== senderAddress
-    });
+
     
     return transaction;
   }

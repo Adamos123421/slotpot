@@ -9,7 +9,7 @@ class ContractService {
     });
     
     this.contractAddress = Address.parse(
-      "EQAO-eknIHULYsinQdpEb8oPVQy6eUXz0-zAPTKi1QTAJkjo"
+        process.env.CONTRACT_ADDRESS || "EQAU8ORrgJWbNGDSiWDgF9p37hNv1q8qkbMb7ZhiHNnSqjo_"
     );
     
     // Rate limiting and caching

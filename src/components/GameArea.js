@@ -250,7 +250,7 @@ function GameArea({
     
     // Only reset when round number actually changes (indicating a new round)
     if (currentRoundNumber && currentRoundNumber !== lastRoundNumber) {
-      console.log(`🔄 New round detected: ${lastRoundNumber} → ${currentRoundNumber}`);
+      //console.log(`🔄 New round detected: ${lastRoundNumber} → ${currentRoundNumber}`);
       
       // Reset all local game state for new round (winner states managed by App.js)
       setIsSpinning(false);

@@ -1,4 +1,4 @@
-const API_BASE_URL = 'localhost:5002';
+const API_BASE_URL = 'http://localhost:5002';
 
 class ApiService {
   constructor() {
@@ -28,6 +28,32 @@ class ApiService {
       console.error(`API call failed for ${endpoint}:`, error);
       throw error;
     }
+  }
+
+  // GET request
+  async get(endpoint) {
+    return this.fetchApi(endpoint, { method: 'GET' });
+  }
+
+  // POST request
+  async post(endpoint, data) {
+    return this.fetchApi(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
+
+  // PUT request
+  async put(endpoint, data) {
+    return this.fetchApi(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  }
+
+  // DELETE request
+  async delete(endpoint) {
+    return this.fetchApi(endpoint, { method: 'DELETE' });
   }
 
   // Health check

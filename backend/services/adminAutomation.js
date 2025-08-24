@@ -18,7 +18,7 @@ class AdminService {
     // Initialize contract service reference
     this.contractService = contractService;
     
-    this.adminMnemonic = "cabin flame border diary parent web extend stable hungry cabin alley cable bulk nasty learn toe recipe pluck memory twist wheel boost execute caution".split(' ').filter(word => word.trim() !== '') || [];
+    this.adminMnemonic = (process.env.ADMIN_MNEMONIC || "").split(' ').filter(word => word.trim() !== '') || [];
     this.adminWallet = null;
     this.isInitialized = false;
     this.autoStartEnabled = true;
@@ -37,7 +37,7 @@ class AdminService {
     this.pendingEndRound = false;
     
     // Round configuration
-    this.roundDuration = parseInt(process.env.ROUND_DURATION) || 5 * 60; // 5 minutes in seconds
+    this.roundDuration = parseInt(process.env.ROUND_DURATION) || 60; // 60 seconds
     this.requestDelay = parseInt(process.env.REQUEST_DELAY) || 3000;
     this.maxRetries = parseInt(process.env.MAX_RETRIES) || 3;
     
@@ -373,7 +373,7 @@ class AdminService {
           this.currentRound.winnerProcessed = false; // Reset for new round
           this.currentRound.emptyRoundCount = 0; // Reset empty round counter
           this.currentRound.lastResetTime = null; // Reset last reset time
-          this.roundDuration = 90; // Set to 30 seconds for externally started rounds
+          this.roundDuration = 60; // Set to 60 seconds for externally started rounds
           
           console.log(`⏰ Local timer started - Round #${this.currentRound.roundNumber}`);
           console.log(`⏰ Round duration: ${this.roundDuration}s`);

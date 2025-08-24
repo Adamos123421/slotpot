@@ -3,7 +3,7 @@ import { User } from 'lucide-react';
 import WalletConnection from './WalletConnection';
 import './Header.css';
 
-const Header = ({ onShowUsernameInput, currentUsername, isConnected = true }) => {
+const Header = ({ onShowUsernameInput, currentUsername, isConnected = true, debugMode = false, onToggleDebug }) => {
   // Check if user has a proper username (not a fallback)
   const hasProperUsername = currentUsername && 
     currentUsername.trim().length >= 2 && 
@@ -13,8 +13,8 @@ const Header = ({ onShowUsernameInput, currentUsername, isConnected = true }) =>
     <div className="page-header">
       <div className="header-content">
         <div className="header-left">
-          {isConnected && <img src="/logo.jpg" alt="SlotPot Logo" className="logo-image" />}
-          <div className="app-title">SlotPot</div>
+          {isConnected && <img src="/logo.jpg" alt="YumePot Logo" className="logo-image" />}
+          <div className="app-title">YumePot</div>
         </div>
         
         <div className="header-right">

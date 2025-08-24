@@ -63,17 +63,11 @@ const useJackpotContract = () => {
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (isLoadingContract) {
-        console.log('⏰ Loading timeout reached - forcing loading state to false');
         setIsLoadingContract(false);
       }
     }, 10000); // 10 second timeout
 
     return () => clearTimeout(timeout);
-  }, [isLoadingContract]);
-
-  // Debug loading state changes
-  useEffect(() => {
-    console.log('🔧 Hook: isLoadingContract changed to:', isLoadingContract);
   }, [isLoadingContract]);
 
   // Essential refs for hook functionality
@@ -110,7 +104,7 @@ const useJackpotContract = () => {
     // Detect new round start (inactive -> active)
     // But only clear bettors if timer > 0 (actual new round, not waiting for winner)
     if (!prevIsActive && currentIsActive && contractState.timer?.timeRemaining > 0) {
-      console.log('🔄 New round detected, clearing bettors list');
+     // console.log('🔄 New round detected, clearing bettors list');
       setCurrentBettors([]); // Clear bettors list for new round
     }
     
@@ -133,8 +127,6 @@ const useJackpotContract = () => {
     
     // Listen for full game updates to sync contract state
     const handleFullGameUpdate = (gameData) => {
-      console.log('🔧 Hook: Received fullGameUpdate:', gameData);
-      console.log('🔧 Hook: Setting isLoadingContract to false');
       // Set loading to false when first data is received
       setIsLoadingContract(false);
       
@@ -154,13 +146,11 @@ const useJackpotContract = () => {
       
       // Update bettors if included in game data
       if (gameData.bettors && Array.isArray(gameData.bettors)) {
-        console.log('🔧 Hook: Updating bettors from game data:', gameData.bettors.length, 'bettors');
         setCurrentBettors(gameData.bettors);
       }
     };
 
     const handleContractUpdate = (contractData) => {
-      console.log('🔧 Hook: Received contractStateUpdate:', contractData);
       // Set loading to false when first data is received
       setIsLoadingContract(false);
       
@@ -180,20 +170,11 @@ const useJackpotContract = () => {
     };
 
     // Set up listeners (removed gameState to avoid duplicates with App.js)
-    console.log('🔧 Hook: Setting up socket listeners');
     socketService.on('fullGameUpdate', handleFullGameUpdate);
     socketService.on('contractStateUpdate', handleContractUpdate);
     socketService.on('bettorsUpdate', handleBettorsUpdate);
-    
-    // Check socket connection status
-    console.log('🔧 Hook: Socket connection status:', {
-      isConnected: socketService.isConnected,
-      socket: !!socketService.socket,
-      socketConnected: socketService.socket?.connected
-    });
 
     return () => {
-      console.log('🔧 Hook: Cleaning up socket listeners');
       socketService.off('fullGameUpdate', handleFullGameUpdate);
       socketService.off('contractStateUpdate', handleContractUpdate);
       socketService.off('bettorsUpdate', handleBettorsUpdate);
@@ -203,8 +184,6 @@ const useJackpotContract = () => {
 
   // Place a bet (sends real transaction and notifies backend)
   const placeBet = async (betAmount) => {
-    console.log(`🎰 placeBet() called with amount: ${betAmount} TON`);
-    
     if (!isConnected || !address) {
       throw new Error('Wallet not connected');
     }
@@ -225,23 +204,10 @@ const useJackpotContract = () => {
 
     try {
       setIsPlacingBet(true);
-      console.log(`🎰 Placing bet: ${numericBetAmount} TON from ${address}`);
-      console.log(`📋 Contract state: active=${contractState.isActive}, jackpot=${contractState.totalJackpot}`);
-
-      // Build transaction for the smart contract using the contract service
-      console.log(`🔧 Building transaction with opcode 0x03...`);
       const transaction = jackpotContract.buildBetTransaction(numericBetAmount, address);
-      
-      console.log(`📤 Sending transaction to contract:`, {
-        contractAddress: transaction.messages[0].address,
-        amount: transaction.messages[0].amount,
-        payloadLength: transaction.messages[0].payload.length
-      });
       
       // Send transaction via TON Connect
       const result = await sendTransaction(transaction);
-      
-      console.log('✅ Bet transaction sent to contract:', result);
 
       // Show transaction notification
       if (typeof window !== 'undefined' && window.showTransactionNotification) {
@@ -318,16 +284,12 @@ const useJackpotContract = () => {
           firstName: user?.firstName,
           lastName: user?.lastName
         });
-        console.log('✅ Chat bet notification sent via socket with full user data');
+        // Chat notification sent
       } catch (socketError) {
-        console.warn('⚠️ Failed to send chat bet notification:', socketError);
+        // Failed to send chat notification
       }
 
       // Backend will automatically detect the bet through contract polling
-      console.log('✅ Bet sent to contract - backend will automatically detect via polling');
-
-      // Simple success response - no bet verification polling
-      console.log('✅ Bet placed successfully - relying on normal polling for updates');
 
       return {
         success: true,
@@ -398,18 +360,7 @@ const useJackpotContract = () => {
       updateSettings: (settings) => backendApi.updateAdminSettings(settings)
     },
     
-    // Debug functions
-    debug: {
-      forceLoadingFalse: () => {
-        console.log('🔧 Debug: Forcing isLoadingContract to false');
-        setIsLoadingContract(false);
-      },
-      getSocketStatus: () => ({
-        isConnected: socketService.isConnected,
-        socket: !!socketService.socket,
-        socketConnected: socketService.socket?.connected
-      })
-    },
+
     
     // Current bettors
     currentBettors

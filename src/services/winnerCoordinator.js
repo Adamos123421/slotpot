@@ -14,7 +14,7 @@ class WinnerCoordinator {
 
   // Set active state and notify all listeners
   setActive(isActive, winnerTimestamp = null, winnerData = null) {
-    console.log(`🎯 WinnerCoordinator: Setting active state: ${isActive}, timestamp: ${winnerTimestamp}`);
+    //console.log(`🎯 WinnerCoordinator: Setting active state: ${isActive}, timestamp: ${winnerTimestamp}`);
     this.isActive = isActive;
     this.currentWinnerTimestamp = winnerTimestamp;
     this.currentWinnerData = winnerData;
@@ -46,21 +46,14 @@ class WinnerCoordinator {
     
     const shouldBlock = isAlreadyActive || isDuplicateTimestamp || isDuplicateWinner;
     
-    console.log(`🎯 WinnerCoordinator shouldBlock check:`, {
-      isActive: isAlreadyActive,
-      currentTimestamp: this.currentWinnerTimestamp,
-      incomingTimestamp: winnerTimestamp,
-      isDuplicateTimestamp,
-      isDuplicateWinner,
-      shouldBlock
-    });
+
     
     return shouldBlock;
   }
 
   // Clear all states (for new rounds)
   reset() {
-    console.log('🔄 WinnerCoordinator: Resetting all states');
+    //console.log('🔄 WinnerCoordinator: Resetting all states');
     this.setActive(false, null, null);
   }
 

@@ -17,25 +17,10 @@ const useTonConnect = () => {
   
   // Handle connection restoration loading state
   useEffect(() => {
-    console.log('🔍 TON Connect state check:', { 
-      hasWallet: !!wallet,
-      hasAccount: !!tonConnectUI.account,
-      rawAddress,
-      address,
-      isConnected: !!(wallet && address),
-      isRestoringConnection
-    });
-    
     if (rawAddress && address) {
-      console.log('✅ Address restored from TON Connect:', { 
-        rawAddress, 
-        bounceableAddress: address, 
-        isBounceable: address.startsWith('EQ') 
-      });
       setIsRestoringConnection(false);
     } else if (!wallet && !tonConnectUI.account) {
       // No wallet at all - stop loading
-      console.log('❌ No wallet connection detected - stopping restoration loading');
       setIsRestoringConnection(false);
     }
   }, [wallet, tonConnectUI.account, rawAddress, address, isRestoringConnection]);
@@ -44,7 +29,6 @@ const useTonConnect = () => {
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (isRestoringConnection) {
-        console.log('⏰ Connection restoration timeout - stopping loading');
         setIsRestoringConnection(false);
       }
     }, 5000); // 5 second timeout
@@ -184,7 +168,7 @@ const useTonConnect = () => {
   // Register user with backend when wallet connects
   useEffect(() => {
     if (isConnected && address && user) {
-      console.log('👤 Wallet connected, registering user with backend...');
+
       userService.registerUser(address, user, user?.referralCode || undefined);
     }
   }, [isConnected, address, user]);

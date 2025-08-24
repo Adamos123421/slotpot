@@ -24,7 +24,7 @@ class SocketService {
       return;
     }
 
-    const socketUrl = "localhost:5002";
+    const socketUrl = "http://localhost:5002";
     
     // Creating socket connection
     this.socket = io(socketUrl, {
@@ -139,7 +139,7 @@ class SocketService {
 
     // Handle round reset
     this.socket.on('roundReset', (data) => {
-      console.log('🔄 Round reset:', data);
+      //console.log('🔄 Round reset:', data);
       
       // SAFETY: Ensure data exists
       const resetData = data || {};

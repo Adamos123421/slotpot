@@ -21,6 +21,7 @@ import socketService from './services/socketService';
 import winnerCoordinator from './services/winnerCoordinator';
 
 import { uiOptions } from './config/tonconnect';
+import { blockConsole, restoreConsole, blockExceptErrors } from './utils/consoleBlock';
 import './App.css';
 import './components/Header.css';
 
@@ -28,6 +29,9 @@ import './components/Header.css';
 const manifestUrl = "https://raw.githubusercontent.com/Vodka2134156/kzsks/main/manifest.json";
 
 function AppContent() {
+  // Debug mode state
+  const [debugMode, setDebugMode] = useState(false);
+  
   // Global referral auto-registration
   useReferralAutoRegistration();
   
@@ -81,6 +85,15 @@ function AppContent() {
       setCurrentUsername(storedUsername.trim());
     }
   }, []);
+
+  // Debug mode control
+  useEffect(() => {
+    if (debugMode) {
+      restoreConsole();
+    } else {
+      blockExceptErrors(); // Block all except errors
+    }
+  }, [debugMode]);
 
 
 
@@ -598,8 +611,8 @@ function AppContent() {
 
     // Listen for round reset events (when timer is reset due to no bettors)
     socketService.on('roundReset', (resetData) => {
-      console.log('🔄 App: Round reset detected:', resetData);
-      console.log('🔓 Exiting winner state - round reset');
+      
+
       
       // Reset timer to the new duration
       setTimeRemaining(resetData.timeRemaining);
@@ -619,7 +632,7 @@ function AppContent() {
       setGameBettors([]);
       // Don't clear previousRoundBettors immediately on reset - let any ongoing animation finish
       setTimeout(() => {
-        console.log('🔄 Delayed clearing of previous round bettors (round reset)');
+
         setPreviousRoundBettors([]);
       }, 1000);
       
@@ -752,6 +765,8 @@ function AppContent() {
                     currentUsername={currentUsername}
                     onShowUsernameInput={() => setShowUsernameInput(true)}
                     isConnected={isConnected}
+                    debugMode={debugMode}
+                    onToggleDebug={() => setDebugMode(!debugMode)}
                   />
             <>
             {/* Betting Section */}

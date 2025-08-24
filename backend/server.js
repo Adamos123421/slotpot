@@ -17,23 +17,49 @@ const PORT = process.env.PORT || 5002;
 
 // Configure CORS for both Express and Socket.io
 const corsOptions = {
-  origin: [
-    "http://localhost:3000", 
-    "http://localhost:3001",
-    process.env.FRONTEND_URL,
-    process.env.REACT_APP_BACKEND_URL,
-    // Allow specific Vercel deployment
-    "https://slotpot-pofq4gtma-adams-projects-21612ba2.vercel.app",
-    // Allow all Vercel deployments
-    /^https:\/\/.*\.vercel\.app$/,
-    // Allow Cloudflare tunnels
-    /^https:\/\/.*\.trycloudflare\.com$/,
-    "https://crops-fragrance-muscles-deposit.trycloudflare.com",
-    // Allow connections from your local network
-    /^http:\/\/192\.168\.\d+\.\d+:\d+$/,
-    /^http:\/\/10\.\d+\.\d+\.\d+:\d+$/,
-    /^http:\/\/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+:\d+$/
-  ].filter(Boolean),
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      "http://localhost:3000", 
+      "http://localhost:3001",
+      "http://localhost:3002",
+      "http://localhost:3003",
+      "http://localhost:3004",
+      "http://localhost:3005",
+      process.env.FRONTEND_URL,
+      process.env.REACT_APP_BACKEND_URL,
+      // Allow specific Vercel deployment
+      "https://slotpot-pofq4gtma-adams-projects-21612ba2.vercel.app",
+      // Allow all Vercel deployments
+      /^https:\/\/.*\.vercel\.app$/,
+      // Allow Cloudflare tunnels
+      /^https:\/\/.*\.trycloudflare\.com$/,
+      "https://crops-fragrance-muscles-deposit.trycloudflare.com",
+      // Allow connections from your local network
+      /^http:\/\/192\.168\.\d+\.\d+:\d+$/,
+      /^http:\/\/10\.\d+\.\d+\.\d+:\d+$/,
+      /^http:\/\/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+:\d+$/
+    ].filter(Boolean);
+    
+    // Check if origin matches any allowed pattern
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (typeof allowedOrigin === 'string') {
+        return origin === allowedOrigin;
+      } else if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return false;
+    });
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.log(`🚫 CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   credentials: true,
@@ -48,9 +74,13 @@ console.log('🔌 Socket service initialized with HTTP server');
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// Handle CORS preflight requests
+app.options('*', cors(corsOptions));
+
 // Add request logging middleware
 app.use('/api', (req, res, next) => {
-  // Only log important endpoints to reduce noise
+  // Log all API requests for debugging
+  console.log(`🌐 API REQUEST: ${req.method} ${req.path} - Origin: ${req.headers.origin} - User-Agent: ${req.headers['user-agent']}`);
   if (req.path.includes('/bet-notification') || req.path.includes('/stats')) {
     console.log(`🌐 API REQUEST: ${req.method} ${req.path} - Body:`, req.body);
   }
