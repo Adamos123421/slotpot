@@ -101,59 +101,76 @@ const RecentWinners = () => {
   }
 
   return (
-    <div className="recent-winners-section">
-      <div className="section-title">
-        <Trophy size={16} />
-        <span>Recent Winners</span>
-      </div>
-      
-      <div className="winners-list">
-        {/* Last Winner */}
-        {lastWinner && (
-          <div key={lastWinner.id} className="winner-item">
-            <div className="winner-rank">
-              <Trophy size={14} />
-            </div>
-            <div className="winner-avatar-small">
-              {generateAvatar(lastWinner.username, lastWinner.avatar, lastWinner.winnerAddress)}
-            </div>
-            <div className="winner-details">
-              <div className="winner-name-small">{lastWinner.username}</div>
-              <div className="winner-round">Last Winner - Round #{lastWinner.round}</div>
-            </div>
-            <div className="winner-amount">
-              {lastWinner.winAmount}
+    <>
+      {/* Last Winner Section */}
+      {lastWinner && (
+        <div className="recent-winners-section">
+          <div className="section-title">
+            <Trophy size={16} />
+            <span>Last Winner</span>
+          </div>
+          
+          <div className="winners-list">
+            <div key={lastWinner.id} className="winner-item">
+              <div className="winner-rank">
+                <Trophy size={14} />
+              </div>
+              <div className="winner-avatar-small">
+                {generateAvatar(lastWinner.username, lastWinner.avatar, lastWinner.winnerAddress)}
+              </div>
+              <div className="winner-details">
+                <div className="winner-name-small">{lastWinner.username}</div>
+                <div className="winner-round">Round #{lastWinner.round}</div>
+              </div>
+              <div className="winner-amount">
+                {lastWinner.winAmount}
+              </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Luckiest Winner of the Day */}
-        {luckiestWinner && (
-          <div key={luckiestWinner.id} className="winner-item">
-            <div className="winner-rank">
-              <Star size={14} />
-            </div>
-            <div className="winner-avatar-small">
-              {generateAvatar(luckiestWinner.username, luckiestWinner.avatar, luckiestWinner.winnerAddress)}
-            </div>
-            <div className="winner-details">
-              <div className="winner-name-small">{luckiestWinner.username}</div>
-              <div className="winner-round">Luckiest Today - Round #{luckiestWinner.round}</div>
-            </div>
-            <div className="winner-amount">
-              {luckiestWinner.winAmount}
+      {/* Luckiest Winner of the Day Section */}
+      {luckiestWinner && (
+        <div className="recent-winners-section luck-of-day">
+          <div className="section-title">
+            <Star size={16} />
+            <span>Luck of the Day</span>
+          </div>
+          
+          <div className="winners-list">
+            <div key={luckiestWinner.id} className="winner-item">
+              <div className="winner-rank">
+                <Star size={14} />
+              </div>
+              <div className="winner-avatar-small">
+                {generateAvatar(luckiestWinner.username, luckiestWinner.avatar, luckiestWinner.winnerAddress)}
+              </div>
+              <div className="winner-details">
+                <div className="winner-name-small">{luckiestWinner.username}</div>
+                <div className="winner-round">Round #{luckiestWinner.round}</div>
+              </div>
+              <div className="winner-amount">
+                {luckiestWinner.winAmount}
+              </div>
             </div>
           </div>
-        )}
-        
-        {!lastWinner && !luckiestWinner && !loading && (
+        </div>
+      )}
+      
+      {!lastWinner && !luckiestWinner && !loading && (
+        <div className="recent-winners-section">
+          <div className="section-title">
+            <Trophy size={16} />
+            <span>Recent Winners</span>
+          </div>
           <div className="no-winners">
             <Award size={20} />
             <span>No winners yet</span>
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   );
 };
 

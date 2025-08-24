@@ -46,6 +46,35 @@
   letter-spacing: 0.5px;
 }
 
+/* Golden styling for Luck of the Day section */
+.recent-winners-section.luck-of-day {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 193, 7, 0.05));
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.2);
+}
+
+.recent-winners-section.luck-of-day .section-title {
+  color: #FFD700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.recent-winners-section.luck-of-day .section-title svg {
+  color: #FFD700;
+  stroke: #FFD700;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+}
+
+.recent-winners-section.luck-of-day .winner-item {
+  background: rgba(255, 215, 0, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.recent-winners-section.luck-of-day .winner-amount {
+  color: #FFD700;
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+
 .current-winner-section {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
