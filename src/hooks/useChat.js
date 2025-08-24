@@ -244,7 +244,7 @@ const useChat = () => {
     getChatStats,
     
     // Connection info
-            serverUrl: 'https://advantage-discovered-abraham-incident.trycloudflare.com/  ',
+            serverUrl: 'https://advantage-discovered-abraham-incident.trycloudflare.com',
     userInfo: {
       username: user?.displayName || 'Anonymous',
       isRealUser: hasRealUserData,
