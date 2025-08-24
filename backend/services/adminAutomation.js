@@ -339,7 +339,7 @@ class AdminService {
             
             // Check if we have no bettors and significant time has passed (e.g., more than 50% of round duration)
             const halfRoundDuration = this.roundDuration / 2;
-            if (currentBettors.length === 0 && timeElapsed > halfRoundDuration) {
+            if (currentBettors.length > 1 && timeElapsed > halfRoundDuration) {
               console.log(`🔄 No bettors after ${timeElapsed}s (>${halfRoundDuration}s) - resetting timer to encourage participation`);
               
               // Reset the timer to give more opportunity for bets

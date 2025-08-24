@@ -13,7 +13,9 @@ const FullScreenControl = () => {
     lockOrientation,
     unlockOrientation,
     getLayoutMode,
-    hapticFeedback
+    hapticFeedback,
+    isMobile,
+    isDesktop
   } = useTelegramWebApp();
 
   const handleFullScreenToggle = async () => {
@@ -36,8 +38,8 @@ const FullScreenControl = () => {
     }
   };
 
-  if (!supportsFullScreen) {
-    return null; // Don't show controls if full-screen isn't supported
+  if (!supportsFullScreen || isDesktop) {
+    return null; // Don't show controls if full-screen isn't supported or on desktop
   }
 
   const layoutMode = getLayoutMode();

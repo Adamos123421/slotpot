@@ -1,5 +1,44 @@
 import { useEffect, useState } from 'react';
 
+// Device detection utility function
+const isMobileDevice = (telegramApp = null) => {
+  // First check Telegram platform if available
+  if (telegramApp?.platform) {
+    const platform = telegramApp.platform.toLowerCase();
+    console.log('📱 Telegram platform detected:', platform);
+    
+    // Telegram platform values:
+    // - "android" = Android mobile
+    // - "ios" = iOS mobile  
+    // - "tdesktop" = Telegram Desktop
+    // - "web" = Web version (could be mobile or desktop)
+    // - "macos" = macOS Telegram
+    // - "unknown" = fallback
+    
+    if (platform === 'android' || platform === 'ios') {
+      console.log('📱 Mobile platform detected via Telegram:', platform);
+      return true;
+    }
+    
+    if (platform === 'tdesktop' || platform === 'macos') {
+      console.log('📱 Desktop platform detected via Telegram:', platform);
+      return false;
+    }
+    
+    // For "web" platform, fall through to additional checks
+    console.log('📱 Web platform detected, using additional checks');
+  }
+  
+  // Fallback to traditional device detection
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isMobileUserAgent = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const isSmallScreen = window.innerWidth <= 768;
+  
+  // Consider it mobile if it has mobile user agent OR (touch + small screen)
+  return isMobileUserAgent || (isTouchDevice && isSmallScreen);
+};
+
 const useTelegramWebApp = () => {
   const [webApp, setWebApp] = useState(null);
   const [user, setUser] = useState(null);
@@ -12,6 +51,7 @@ const useTelegramWebApp = () => {
     width: window.innerWidth,
     height: window.innerHeight
   });
+  const [isMobile, setIsMobile] = useState(false); // Will be set properly in useEffect
 
   useEffect(() => {
     const app = window.Telegram?.WebApp;
@@ -23,7 +63,23 @@ const useTelegramWebApp = () => {
       
       app.ready();
       
-      // Enable full screen mode aggressively
+      // Detect if device is mobile or desktop using Telegram platform info
+      const deviceIsMobile = isMobileDevice(app);
+      const isDesktop = !deviceIsMobile;
+      setIsMobile(deviceIsMobile);
+      console.log('📱 Device detection:', { 
+        isMobile: !isDesktop, 
+        isDesktop, 
+        userAgent: navigator.userAgent,
+        screenWidth: window.innerWidth,
+        touchSupport: 'ontouchstart' in window,
+        telegramPlatform: app.platform,
+        telegramVersion: app.version,
+        viewportHeight: app.viewportHeight,
+        viewportWidth: app.viewportWidth
+      });
+      
+      // Enable full screen mode only on mobile devices
       app.expand();
       app.enableClosingConfirmation();
       
@@ -41,15 +97,18 @@ const useTelegramWebApp = () => {
         }
       }, { passive: false });
       
-      // Request new full-screen mode if available
-      if (app.requestFullscreen) {
+      // Request new full-screen mode only on mobile devices
+      if (app.requestFullscreen && !isDesktop) {
         try {
           app.requestFullscreen();
           setIsFullScreen(true);
-          console.log('📱 Telegram full-screen mode requested');
+          console.log('📱 Telegram full-screen mode requested (mobile device)');
         } catch (error) {
           console.log('📱 Full-screen mode not available:', error);
         }
+      } else if (isDesktop) {
+        console.log('📱 Skipping full-screen mode on desktop device');
+        setIsFullScreen(false);
       }
       
       // Request full screen viewport
@@ -207,6 +266,19 @@ const useTelegramWebApp = () => {
             width: window.innerWidth,
             height: window.innerHeight
           });
+          
+          // Re-check device type on resize (for responsive breakpoints)
+          const newIsMobile = isMobileDevice(app);
+          if (newIsMobile !== isMobile) {
+            setIsMobile(newIsMobile);
+            console.log('📱 Device type changed:', { 
+              wasMobile: isMobile, 
+              nowMobile: newIsMobile,
+              screenWidth: window.innerWidth,
+              telegramPlatform: app.platform
+            });
+          }
+          
           console.log('📱 Orientation changed to:', newOrientation);
         }, 100); // Small delay to ensure dimensions are updated
       };
@@ -237,6 +309,11 @@ const useTelegramWebApp = () => {
         photoUrl: null
       });
       
+      // Set device detection for non-Telegram environment
+      const deviceIsMobile = isMobileDevice();
+      setIsMobile(deviceIsMobile);
+      console.log('📱 Running in browser mode - using mock data, isMobile:', deviceIsMobile);
+      
       // Handle orientation in browser mode
       const handleBrowserOrientationChange = () => {
         const newOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
@@ -245,6 +322,17 @@ const useTelegramWebApp = () => {
           width: window.innerWidth,
           height: window.innerHeight
         });
+        
+        // Re-check device type on resize (for responsive breakpoints)
+        const newIsMobile = isMobileDevice();
+        if (newIsMobile !== isMobile) {
+          setIsMobile(newIsMobile);
+          console.log('📱 Browser mode device type changed:', { 
+            wasMobile: isMobile, 
+            nowMobile: newIsMobile,
+            screenWidth: window.innerWidth
+          });
+        }
       };
       
       window.addEventListener('resize', handleBrowserOrientationChange);
@@ -324,6 +412,11 @@ const useTelegramWebApp = () => {
 
   // Full-screen mode controls
   const requestFullScreen = async () => {
+    if (!isMobile) {
+      console.log('📱 Full-screen mode disabled on desktop devices');
+      return false;
+    }
+    
     if (webApp?.requestFullscreen) {
       try {
         await webApp.requestFullscreen();
@@ -358,6 +451,11 @@ const useTelegramWebApp = () => {
   };
 
   const toggleFullScreen = async () => {
+    if (!isMobile) {
+      console.log('📱 Full-screen toggle disabled on desktop devices');
+      return false;
+    }
+    
     if (isFullScreen) {
       return await exitFullScreen();
     } else {
@@ -421,6 +519,9 @@ const useTelegramWebApp = () => {
     isTelegramEnv: !!window.Telegram?.WebApp,
     // Helper to check if we have real user data
     hasRealUserData: !!(webApp && webApp.initDataUnsafe?.user),
+    // Device detection
+    isMobile,
+    isDesktop: !isMobile,
     // Full-screen mode functionality
     isFullScreen,
     requestFullScreen,
