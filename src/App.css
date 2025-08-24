@@ -1671,6 +1671,18 @@ html.telegram-fullscreen .jackpot-value-display {
   .jackpot-value-display {
     font-size: 40px;
   }
+  
+  /* Mobile fixes for referrals container */
+  .referrals-container {
+    min-height: auto;
+    height: auto;
+    overflow-y: auto;
+    padding-bottom: 20px;
+  }
+  
+  .referrals-container > * {
+    margin: 8px;
+  }
 }
 
 /* Responsive adjustments for smaller screens */
