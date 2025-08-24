@@ -1,6 +1,6 @@
 // TON Connect configuration
 export const tonConnectConfig = {
-  manifestUrl: "https://raw.githubusercontent.com/Adamos123421/slotpot/main/manifest.json",
+  manifestUrl: `${window.location.origin}/tonconnect-manifest.json`,
   // For development - you can use a local manifest later
   
   // Wallet adapters

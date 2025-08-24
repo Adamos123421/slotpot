@@ -26,7 +26,7 @@ import './App.css';
 import './components/Header.css';
 
 // TON Connect manifest URL - use appropriate manifest based on environment
-const manifestUrl ="https://raw.githubusercontent.com/Adamos123421/slotpot/main/manifests.json"
+const manifestUrl ="https://raw.githubusercontent.com/Adamos123421/whatsapp-chatgpt-bot/refs/heads/main/manifest.json"
 
 function AppContent() {
   // Debug mode state
