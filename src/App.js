@@ -829,9 +829,14 @@ function AppContent() {
               </div>
               <div className="stat-card">
                 <div className="stat-value">
-                  {Math.floor((timeRemaining || 0) / 60)}:{((timeRemaining || 0) % 60).toString().padStart(2, '0')}
+                  {gameBettors.length < 2 ? 
+                    "Waiting..." : 
+                    `${Math.floor((timeRemaining || 0) / 60)}:${((timeRemaining || 0) % 60).toString().padStart(2, '0')}`
+                  }
                 </div>
-                <div className="stat-label">Time Remaining</div>
+                <div className="stat-label">
+                  {gameBettors.length < 2 ? "Need 2 Players" : "Time Remaining"}
+                </div>
               </div>
             </div>
 
