@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { TonIcon } from './IconComponents';
 import soundService from '../services/soundService';
@@ -209,10 +210,10 @@ const SimpleCarousel = ({
     
     // Slide at least 3 full cycles to create that "fast spinning" effect
     // Then land precisely on the winner in the next visible cycle
-    const minimumSpinDistance = cycleLength * 2; // At least 3 full cycles
+    const minimumSpinDistance = cycleLength * 3; // At least 3 full cycles
     const targetCycle = Math.ceil((currentAbsolutePosition + minimumSpinDistance) / cycleLength);
     const finalWinnerPosition = (targetCycle * cycleLength) + winnerOffset;
-    const finalPosition = -(finalWinnerPosition + (actualCardWidth / 2) - centerOffset+75);
+    const finalPosition = -(finalWinnerPosition + (actualCardWidth / 2) - centerOffset);
     
     console.log(`🎰 Classic slot machine calculation:`);
     console.log(`   - Current position: ${currentPosition.current}px`);
@@ -234,12 +235,22 @@ const SimpleCarousel = ({
     wheel.style.transitionDuration = '2000ms';
     
     // Slide 80% of the way during fast phase
-    const fastPhasePosition = currentPosition.current + ((finalPosition - currentPosition.current) * 0.1);
+    const fastPhasePosition = currentPosition.current + ((finalPosition - currentPosition.current) * 0.8);
     wheel.style.transform = `translate3d(${fastPhasePosition}px, 0px, 0px)`;
     currentPosition.current = fastPhasePosition;
     
     // STAGE 2: Slow down dramatically for final 20% over 3 seconds
-   
+    setTimeout(() => {
+      // Slower ticking sound
+      clearInterval(tickInterval);
+      tickInterval = setInterval(() => {
+        soundService.playSpinWithVolume(0.4);
+      }, 300); // Much slower ticking
+      
+      wheel.style.transitionTimingFunction = 'cubic-bezier(0.05, 0.1, 0.05, 1)';
+      wheel.style.transitionDuration = '3000ms';
+      wheel.style.transform = `translate3d(${finalPosition}px, 0px, 0px)`;
+      currentPosition.current = finalPosition;
       
       // Stop ticking after slowdown completes
       setTimeout(() => {
