@@ -108,11 +108,11 @@ const ReferralSystem = () => {
         const updatedInfo = await backendApi.fetchJson(`/api/referral/info/${encodeURIComponent(address)}`);
         setReferralInfo(updatedInfo);
       } else {
-     
+        setError(response.error || 'Failed to register referral');
       }
     } catch (err) {
       console.error('Referral registration error:', err);
-      setError('Failed to register referral. Please try again.');
+     
     } finally {
       setRegistering(false);
     }
@@ -256,7 +256,7 @@ const ReferralSystem = () => {
           <div className="referral-subtitle">
             {referralInfo?.referrer ? 
               'You already have a referrer' : 
-              'Register this referral to earn 10% bonus on wins'
+              'Register this referral to earn 10% of our fees when they win'
             }
           </div>
           
