@@ -32,7 +32,7 @@ const ReferralSystem = () => {
       }
       setLoading(true);
       try {
-        const data = await backendApi.fetchJson(`/api/referral/info/${encodeURIComponent(address)}`);
+        const data = await backendApi.getReferralInfo(address);
         if (!active) return;
         setReferralInfo(data);
       } catch (err) {
@@ -91,21 +91,18 @@ const ReferralSystem = () => {
     setSuccess('');
     
     try {
-      const response = await backendApi.fetchJson('/api/referral/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          address,
-          referrer: referralCode,
-          telegramId: user.id,
-          username: user.username || user.first_name
-        })
+      const response = await backendApi.registerReferral({
+        address,
+        referrer: referralCode,
+        telegramId: user.id,
+        username: user.username || user.first_name
       });
       
       if (response.success) {
         setSuccess('Referral registered successfully! You\'ll earn 10% of our fees when your referrals win.');
         setReferralCode(''); // Clear the code after successful registration
         // Reload referral info
-        const updatedInfo = await backendApi.fetchJson(`/api/referral/info/${encodeURIComponent(address)}`);
+        const updatedInfo = await backendApi.getReferralInfo(address);
         setReferralInfo(updatedInfo);
       } else {
         setError(response.error || 'Failed to register referral');

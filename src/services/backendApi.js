@@ -84,6 +84,18 @@ class BackendApiService {
     const params = new URLSearchParams({ limit });
     return this.fetchJson(`/api/stats/recent-games?${params.toString()}`);
   }
+
+  // Referral endpoints
+  async getReferralInfo(address) {
+    return this.fetchJson(`/api/referral/info/${encodeURIComponent(address)}`);
+  }
+
+  async registerReferral(data) {
+    return this.fetchJson('/api/referral/register', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
 }
 
 // Create singleton instance
