@@ -13,7 +13,7 @@ const Header = ({ onShowUsernameInput, currentUsername, isConnected = true, debu
     <div className="page-header">
       <div className="header-content">
         <div className="header-left">
-          {isConnected && <img src="/logo.jpg" alt="YumePot Logo" className="logo-image" />}
+          <img src="/logo.jpg" alt="YumePot Logo" className="logo-image" />
           <div className="app-title">YUBET</div>
         </div>
         
