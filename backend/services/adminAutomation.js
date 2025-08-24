@@ -276,23 +276,23 @@ class AdminService {
           
           // Check if timer has expired
           if (timeRemaining === 0) {
-            // Timer expired - check if there are any bettors
-            if (currentBettors.length === 0) {
-              console.log('🔄 Round timer expired but no bettors found - restarting timer');
+            // Timer expired - check if there are enough bettors (minimum 2)
+            if (currentBettors.length < 2) {
+              console.log(`🔄 Round timer expired but only ${currentBettors.length} bettor(s) found - need minimum 2 - restarting timer`);
               
               // Reset the timer instead of ending the round
               await this.resetRoundTimer();
               
               this.broadcastToChat(
-                `⏰ Round #${this.currentRound.roundNumber} extended - no bets placed yet! ` +
-                `Timer reset to ${this.roundDuration} seconds.`, 
+                `⏰ Round #${this.currentRound.roundNumber} extended - need at least 2 players! ` +
+                `Currently ${currentBettors.length} player(s). Timer reset to ${this.roundDuration} seconds.`, 
                 'system'
               );
               
               return; // Exit early, don't process round ending
         } else {
-              // There are bettors - proceed with ending the round
-              console.log('⏰ Round timer expired with bettors - ending round automatically');
+              // There are enough bettors (2+) - proceed with ending the round
+              console.log(`⏰ Round timer expired with ${currentBettors.length} bettors - ending round automatically`);
               
               // IMMEDIATELY notify frontend that we're waiting for winner selection
               console.log('🎯 Timer expired with bettors - setting waiting for winner state...');
@@ -337,17 +337,17 @@ class AdminService {
             // Timer still running
             console.log(`✅ Round is active - ${timeRemaining}s remaining`);
             
-            // Check if we have no bettors and significant time has passed (e.g., more than 50% of round duration)
+            // Check if we have fewer than 2 bettors and significant time has passed (e.g., more than 50% of round duration)
             const halfRoundDuration = this.roundDuration / 2;
-            if (currentBettors.length > 1 && timeElapsed > halfRoundDuration) {
-              console.log(`🔄 No bettors after ${timeElapsed}s (>${halfRoundDuration}s) - resetting timer to encourage participation`);
+            if (currentBettors.length < 2 && timeElapsed > halfRoundDuration) {
+              console.log(`🔄 Only ${currentBettors.length} bettor(s) after ${timeElapsed}s (>${halfRoundDuration}s) - need minimum 2 - resetting timer to encourage participation`);
               
               // Reset the timer to give more opportunity for bets
               await this.resetRoundTimer();
               
               this.broadcastToChat(
-                `⏰ Round #${this.currentRound.roundNumber} reset - no bets after ${Math.floor(timeElapsed)}s! ` +
-                `Fresh ${this.roundDuration}s timer started.`, 
+                `⏰ Round #${this.currentRound.roundNumber} reset - need at least 2 players! ` +
+                `Currently ${currentBettors.length} player(s). Fresh ${this.roundDuration}s timer started.`, 
                 'system'
               );
               
