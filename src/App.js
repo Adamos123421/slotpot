@@ -757,9 +757,7 @@ function AppContent() {
                           ) : (
                 <div className="jackpot-container">
                   {/* Online Indicator - Just above header */}
-                  <OnlineIndicator 
-                    isConnected={isConnected} 
-                  />
+                 
                   
                   <Header 
                     currentUsername={currentUsername}
