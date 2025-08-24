@@ -26,7 +26,7 @@ import './App.css';
 import './components/Header.css';
 
 // TON Connect manifest URL - use remote manifest to avoid 500 errors
-const manifestUrl = "https://raw.githubusercontent.com/Vodka2134156/kzsks/main/manifest.json";
+const manifestUrl = "https://raw.githubusercontent.com/Adamos123421/slotpot/main/manifest.json";
 
 function AppContent() {
   // Debug mode state

@@ -42,7 +42,7 @@ const PlayerProfile = () => {
   }, [address]);
 
   const totalBets = stats?.totalBets ?? 0;
-  const totalAmountBet = Number(stats?.totalAmountBet ?? 0);
+  const totalAmountBet = Number(stats?.totalAmountBet ?? 0)*0.95;
   const totalPrize = Number(stats?.totalPrize ?? 0);
   const netProfit = +(totalPrize - totalAmountBet).toFixed(3);
   const referralEarnings = Number(stats?.referralEarnings ?? 0);

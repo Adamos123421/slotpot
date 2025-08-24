@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { TonIcon } from './IconComponents';
-import soundService from '../services/soundService';
 
 const SimpleCarousel = ({ 
   players, 
@@ -60,7 +59,7 @@ const SimpleCarousel = ({
           </div>
           <div class="player-info">
             <p class="player-name">${username}</p>
-            <div class="bet-info">
+              <div class="bet-info">
               <span class="bet-amount">${bet}</span>
             </div>
           </div>
@@ -164,8 +163,7 @@ const SimpleCarousel = ({
     
     console.log('Starting spin with winner:', targetWinner);
     
-    // Play launch sound when spin starts
-    soundService.playLaunch();
+    // Sound removed
     
     setWheelState('spinning');
     stopIdleMovement();
@@ -224,10 +222,7 @@ const SimpleCarousel = ({
     console.log(`   - Final position: ${finalPosition}px`);
     console.log(`   - Total slide distance: ${Math.abs(finalPosition - currentPosition.current)}px`);
     
-    // Start ticking sound for the spinning effect
-    let tickInterval = setInterval(() => {
-      soundService.playSpinWithVolume(0.3);
-    }, 100); // Fast ticking initially
+    // Sound removed
     
     // STAGE 1: Fast spinning for 2 seconds
     wheel.style.transitionTimingFunction = 'linear';
@@ -240,21 +235,14 @@ const SimpleCarousel = ({
     
     // STAGE 2: Slow down dramatically for final 20% over 3 seconds
     setTimeout(() => {
-      // Slower ticking sound
-      clearInterval(tickInterval);
-      tickInterval = setInterval(() => {
-        soundService.playSpinWithVolume(0.4);
-      }, 300); // Much slower ticking
+      // Sound removed
       
       wheel.style.transitionTimingFunction = 'cubic-bezier(0.05, 0.1, 0.05, 1)';
       wheel.style.transitionDuration = '3000ms';
       wheel.style.transform = `translate3d(${finalPosition}px, 0px, 0px)`;
       currentPosition.current = finalPosition;
       
-      // Stop ticking after slowdown completes
-      setTimeout(() => {
-        clearInterval(tickInterval);
-      }, 3000);
+      // Sound removed
       
     }, 2000); // Wait 2 seconds for fast phase
     
