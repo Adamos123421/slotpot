@@ -263,6 +263,29 @@ class StatsService {
       .limit(Number(limit) || 10)
       .toArray();
   }
+
+  async getLuckiestWinnerOfDay() {
+    if (!this.isReady()) return null;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const result = await this.collections.games
+      .find({
+        timestamp: {
+          $gte: today.getTime(),
+          $lt: tomorrow.getTime()
+        }
+      }, { projection: { _id: 0 } })
+      .sort({ prize: -1 })
+      .limit(1)
+      .toArray();
+    
+    return result.length > 0 ? result[0] : null;
+  }
 }
 
 const statsService = new StatsService();

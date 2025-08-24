@@ -85,6 +85,10 @@ class BackendApiService {
     return this.fetchJson(`/api/stats/recent-games?${params.toString()}`);
   }
 
+  async getLuckiestWinner() {
+    return this.fetchJson('/api/stats/luckiest-winner');
+  }
+
   // Referral endpoints
   async getReferralInfo(address) {
     return this.fetchJson(`/api/referral/info/${encodeURIComponent(address)}`);

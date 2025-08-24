@@ -828,6 +828,30 @@ app.get('/api/stats/recent-games', async (req, res) => {
   }
 });
 
+// Get luckiest winner of the day
+app.get('/api/stats/luckiest-winner', async (req, res) => {
+  try {
+    const luckiestWinner = await statsService.getLuckiestWinnerOfDay();
+    
+    if (luckiestWinner && luckiestWinner.winnerAddress) {
+      const currentUserInfo = userService.getUserInfo(luckiestWinner.winnerAddress);
+      const enhancedWinner = {
+        ...luckiestWinner,
+        currentUsername: currentUserInfo.username,
+        displayName: currentUserInfo.username || luckiestWinner.username,
+        avatar: currentUserInfo.telegramPhotoUrl || null,
+        winnerAddress: luckiestWinner.winnerAddress
+      };
+      res.json(enhancedWinner);
+    } else {
+      res.json(null);
+    }
+  } catch (error) {
+    console.error('Error fetching luckiest winner:', error);
+    res.status(500).json({ error: 'Failed to fetch luckiest winner' });
+  }
+});
+
 // Get leaderboard
 app.get('/api/stats/leaderboard', async (req, res) => {
   try {
