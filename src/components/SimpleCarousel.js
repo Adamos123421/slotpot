@@ -61,7 +61,6 @@ const SimpleCarousel = ({
           <div class="player-info">
             <p class="player-name">${username}</p>
             <div class="bet-info">
-              <div class="coin-icon ${!isActive ? 'grayscale' : ''}"></div>
               <span class="bet-amount">${bet}</span>
             </div>
           </div>
