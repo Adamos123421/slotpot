@@ -24,7 +24,7 @@ class SocketService {
       return;
     }
 
-    const socketUrl = "https://insight-enforcement-soul-tonight.trycloudflare.com";
+    const socketUrl = "localhost:5002";
     
     // Creating socket connection
     this.socket = io(socketUrl, {

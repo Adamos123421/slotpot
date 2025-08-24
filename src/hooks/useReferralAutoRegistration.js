@@ -57,16 +57,16 @@ const useReferralAutoRegistration = () => {
 
       if (response.success) {
         console.log('✅ Global auto-registration: Success!');
-        alert(`🎯 Referral registered successfully! You: ${address.slice(0, 8)}... Referrer: ${referralCode.slice(0, 8)}...`);
+        console.log(`🎯 Referral registered successfully! You: ${address.slice(0, 8)}... Referrer: ${referralCode.slice(0, 8)}...`);
         setHasRegistered(true);
       } else {
         console.log('❌ Global auto-registration: Failed -', response.error);
-        alert(`❌ Referral registration failed: ${response.error}`);
+        console.log(`❌ Referral registration failed: ${response.error}`);
         setHasRegistered(true); // Mark as attempted to prevent retries
       }
     } catch (error) {
       console.error('❌ Global auto-registration: Error -', error);
-      alert('❌ Referral registration error. Please try again.');
+      console.log('❌ Referral registration error. Please try again.');
       setHasRegistered(true); // Mark as attempted to prevent retries
     } finally {
       setIsRegistering(false);

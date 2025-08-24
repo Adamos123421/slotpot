@@ -156,7 +156,7 @@ function AppContent() {
     if (!rawAdminInfo || typeof rawAdminInfo !== 'object') {
       return {
         isAutoManaged: false,
-        roundDuration: 300,
+        roundDuration: 60,
         minBetsToEnd: 1,
         timerActive: false,
         timeRemaining: 0
@@ -166,7 +166,7 @@ function AppContent() {
     // Extract only primitive values to prevent accidental object rendering
     return {
       isAutoManaged: Boolean(rawAdminInfo.isAutoManaged),
-      roundDuration: Number(rawAdminInfo.roundDuration) || 300,
+              roundDuration: Number(rawAdminInfo.roundDuration) || 60,
       minBetsToEnd: Number(rawAdminInfo.minBetsToEnd) || 1,
       timerActive: Boolean(rawAdminInfo.timerActive),
       timeRemaining: Number(rawAdminInfo.timeRemaining) || 0,
@@ -719,7 +719,7 @@ function AppContent() {
     <div className="app">
         <div className="app-container">
           {/* Fixed Chat Bubble */}
-          <ChatBubble telegramGroupUrl="https://t.me/yourgroup" />
+          <ChatBubble telegramGroupUrl="https://t.me/yumeonton" />
           
           {/* Main Content */}
           <div className="main-content">
@@ -728,6 +728,7 @@ function AppContent() {
                 <Header 
                   currentUsername={currentUsername}
                   onShowUsernameInput={() => setShowUsernameInput(true)}
+                  isConnected={isConnected}
                 />
                 <PlayerProfile />
               </div>
@@ -736,6 +737,7 @@ function AppContent() {
                 <Header 
                   currentUsername={currentUsername}
                   onShowUsernameInput={() => setShowUsernameInput(true)}
+                  isConnected={isConnected}
                 />
                 <ReferralSystem />
               </div>
@@ -749,6 +751,7 @@ function AppContent() {
                   <Header 
                     currentUsername={currentUsername}
                     onShowUsernameInput={() => setShowUsernameInput(true)}
+                    isConnected={isConnected}
                   />
             <>
             {/* Betting Section */}

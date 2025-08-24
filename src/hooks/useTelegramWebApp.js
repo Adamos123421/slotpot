@@ -224,7 +224,6 @@ const useTelegramWebApp = () => {
       };
       
     } else {
-      console.log('Telegram WebApp not available - running in browser mode');
       // Set mock user for browser testing
       setUser({
         id: 123456789,

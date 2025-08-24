@@ -35,7 +35,7 @@
 /* Carousel Viewport */
 .carousel-viewport {
   position: relative;
-  height: 200px;
+  height: 220px;
   overflow: hidden;
   background: linear-gradient(90deg, 
     transparent 0%, 
@@ -74,7 +74,7 @@
 .roulette-card {
   flex-shrink: 0;
   width: 166px;
-  height: 180px;
+  height: 240px;
   background: linear-gradient(135deg, #23232e 0%, #1a1a1a 100%);
   border-radius: 12px;
   border: 1px solid #333;
@@ -107,9 +107,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   height: 100%;
-  padding: 16px;
+  padding: 24px 16px 20px 16px;
   position: relative;
 }
 
@@ -147,10 +147,12 @@
 .player-info {
   text-align: center;
   width: 100%;
+  margin-top: auto;
+  margin-bottom: 20px;
 }
 
 .player-name {
-  margin: 0 0 8px 0;
+  margin: 0 0 20px 0;
   color: #fff;
   font-size: 14px;
   font-weight: 600;
@@ -158,6 +160,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 140px;
+  line-height: 1.4;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Bet Info */
@@ -166,6 +173,8 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+  margin-top: 8px;
+  min-height: 24px;
 }
 
 .coin-icon {
@@ -239,12 +248,12 @@
   }
   
   .carousel-viewport {
-    height: 160px;
+    height: 180px;
   }
   
   .roulette-card {
     width: 140px;
-    height: 150px;
+    height: 170px;
   }
   
   .avatar-container {

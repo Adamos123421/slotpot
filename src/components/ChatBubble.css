@@ -1,11 +1,11 @@
 .chat-bubble {
   position: fixed;
-  bottom: 140px; /* Above the online indicator */
+  bottom: 90px; /* Moved down more */
   left: 20px;
   z-index: 999;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 12px 16px;
+  padding: 16px 20px; /* Made even bigger */
   border-radius: 25px;
   cursor: pointer;
   display: flex;
@@ -14,7 +14,7 @@
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
   transition: all 0.3s ease;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 16px; /* Made text even bigger */
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -47,10 +47,10 @@
 /* Mobile responsive */
 @media (max-width: 768px) {
   .chat-bubble {
-    bottom: 130px;
+    bottom: 80px; /* Moved down more on mobile */
     left: 15px;
-    padding: 10px 14px;
-    font-size: 13px;
+    padding: 14px 18px; /* Made even bigger on mobile */
+    font-size: 15px; /* Made text even bigger on mobile */
   }
   
   .chat-text {
@@ -59,8 +59,8 @@
   
   .chat-bubble {
     border-radius: 50%;
-    width: 44px;
-    height: 44px;
+    width: 56px; /* Made even bigger */
+    height: 56px; /* Made even bigger */
     justify-content: center;
     padding: 0;
   }

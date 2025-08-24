@@ -1,10 +1,9 @@
 import React from 'react';
-import { Volume2, VolumeX, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import WalletConnection from './WalletConnection';
-import SoundControl from './SoundControl';
 import './Header.css';
 
-const Header = ({ onShowUsernameInput, currentUsername }) => {
+const Header = ({ onShowUsernameInput, currentUsername, isConnected = true }) => {
   // Check if user has a proper username (not a fallback)
   const hasProperUsername = currentUsername && 
     currentUsername.trim().length >= 2 && 
@@ -14,12 +13,11 @@ const Header = ({ onShowUsernameInput, currentUsername }) => {
     <div className="page-header">
       <div className="header-content">
         <div className="header-left">
-          <img src="/logo.jpg" alt="SlotPot Logo" className="logo-image" />
+          {isConnected && <img src="/logo.jpg" alt="SlotPot Logo" className="logo-image" />}
           <div className="app-title">SlotPot</div>
         </div>
         
         <div className="header-right">
-          <SoundControl />
           {!hasProperUsername && onShowUsernameInput && (
             <button 
               className="username-setup-btn"

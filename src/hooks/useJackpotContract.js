@@ -37,7 +37,7 @@ const useJackpotContract = () => {
       timeElapsed: 0,
       roundNumber: 0
     },
-    roundDuration: 300,
+    roundDuration: 60,
     bettors: []
   });
 
@@ -58,6 +58,23 @@ const useJackpotContract = () => {
   // Loading states
   const [isPlacingBet, setIsPlacingBet] = useState(false);
   const [isLoadingContract, setIsLoadingContract] = useState(true);
+
+  // Add timeout fallback for loading state
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isLoadingContract) {
+        console.log('⏰ Loading timeout reached - forcing loading state to false');
+        setIsLoadingContract(false);
+      }
+    }, 10000); // 10 second timeout
+
+    return () => clearTimeout(timeout);
+  }, [isLoadingContract]);
+
+  // Debug loading state changes
+  useEffect(() => {
+    console.log('🔧 Hook: isLoadingContract changed to:', isLoadingContract);
+  }, [isLoadingContract]);
 
   // Essential refs for hook functionality
   const prevIsActiveRef = useRef(contractState.isActive);
@@ -116,6 +133,8 @@ const useJackpotContract = () => {
     
     // Listen for full game updates to sync contract state
     const handleFullGameUpdate = (gameData) => {
+      console.log('🔧 Hook: Received fullGameUpdate:', gameData);
+      console.log('🔧 Hook: Setting isLoadingContract to false');
       // Set loading to false when first data is received
       setIsLoadingContract(false);
       
@@ -141,6 +160,7 @@ const useJackpotContract = () => {
     };
 
     const handleContractUpdate = (contractData) => {
+      console.log('🔧 Hook: Received contractStateUpdate:', contractData);
       // Set loading to false when first data is received
       setIsLoadingContract(false);
       
@@ -160,9 +180,17 @@ const useJackpotContract = () => {
     };
 
     // Set up listeners (removed gameState to avoid duplicates with App.js)
+    console.log('🔧 Hook: Setting up socket listeners');
     socketService.on('fullGameUpdate', handleFullGameUpdate);
     socketService.on('contractStateUpdate', handleContractUpdate);
     socketService.on('bettorsUpdate', handleBettorsUpdate);
+    
+    // Check socket connection status
+    console.log('🔧 Hook: Socket connection status:', {
+      isConnected: socketService.isConnected,
+      socket: !!socketService.socket,
+      socketConnected: socketService.socket?.connected
+    });
 
     return () => {
       console.log('🔧 Hook: Cleaning up socket listeners');
@@ -202,7 +230,7 @@ const useJackpotContract = () => {
 
       // Build transaction for the smart contract using the contract service
       console.log(`🔧 Building transaction with opcode 0x03...`);
-      const transaction = jackpotContract.buildBetTransaction(numericBetAmount, "EQDhuMbM_cT3dXuJulXmlkA12YF8k5VdpPc1UxkuEqLpCo9K");
+      const transaction = jackpotContract.buildBetTransaction(numericBetAmount, address);
       
       console.log(`📤 Sending transaction to contract:`, {
         contractAddress: transaction.messages[0].address,
@@ -368,6 +396,19 @@ const useJackpotContract = () => {
       forceStartRound: (adminKey) => backendApi.forceStartRound(adminKey),
       forceEndRound: (adminKey) => backendApi.forceEndRound(adminKey),
       updateSettings: (settings) => backendApi.updateAdminSettings(settings)
+    },
+    
+    // Debug functions
+    debug: {
+      forceLoadingFalse: () => {
+        console.log('🔧 Debug: Forcing isLoadingContract to false');
+        setIsLoadingContract(false);
+      },
+      getSocketStatus: () => ({
+        isConnected: socketService.isConnected,
+        socket: !!socketService.socket,
+        socketConnected: socketService.socket?.connected
+      })
     },
     
     // Current bettors

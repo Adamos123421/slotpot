@@ -5,10 +5,10 @@ import { TonClient } from '@ton/ton';
 export const JACKPOT_CONTRACT_CONFIG = {
   // ⚠️ IMPORTANT: Replace this with your actual deployed contract address!
   // This is just a placeholder - transactions will fail with wrong address
-  address: process.env.REACT_APP_CONTRACT_ADDRESS || "REPLACE_WITH_YOUR_ACTUAL_CONTRACT_ADDRESS",
+  address: "EQAU8ORrgJWbNGDSiWDgF9p37hNv1q8qkbMb7ZhiHNnSqjo_",
   
   // Admin configuration - in production, use environment variables
-  adminMnemonic: "cabin flame border diary parent web extend stable hungry cabin alley cable bulk nasty learn toe recipe pluck memory twist wheel boost execute caution".split(' ') || [],
+  adminMnemonic: (process.env.REACT_APP_ADMIN_MNEMONIC || "").split(' ') || [],
   
   // TON Client configuration
   endpoint: process.env.REACT_APP_TON_ENDPOINT || 'https://toncenter.com/api/v2/jsonRPC',
@@ -47,7 +47,7 @@ export class JackpotContract {
       apiKey: JACKPOT_CONTRACT_CONFIG.apiKey
     });
     
-    this.contractAddress = Address.parse("EQAO-eknIHULYsinQdpEb8oPVQy6eUXz0-zAPTKi1QTAJkjo");
+    this.contractAddress = Address.parse( "EQAU8ORrgJWbNGDSiWDgF9p37hNv1q8qkbMb7ZhiHNnSqjo_");
     
     // Debug contract address on initialization
     console.log('🏗️ JackpotContract initialized:', {

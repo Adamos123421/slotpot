@@ -104,23 +104,6 @@ const SoundControl = () => {
       style={getButtonStyle()}
     >
       {getIcon()}
-      {/* Debug info in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div style={{
-          position: 'absolute',
-          top: '100%',
-          left: 0,
-          fontSize: '8px',
-          background: 'rgba(0,0,0,0.8)',
-          color: 'white',
-          padding: '2px 4px',
-          borderRadius: '2px',
-          whiteSpace: 'nowrap',
-          zIndex: 1000
-        }}>
-          {`${isLoaded ? 'L' : 'x'}${isEnabled ? 'E' : 'x'}${isUnlocked ? 'U' : 'x'} ${audioContextState}`}
-        </div>
-      )}
     </button>
   );
 };

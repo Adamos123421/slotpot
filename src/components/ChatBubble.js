@@ -2,7 +2,7 @@ import React from 'react';
 import { MessageCircle } from 'lucide-react';
 import './ChatBubble.css';
 
-const ChatBubble = ({ telegramGroupUrl = "https://t.me/yourgroup" }) => {
+const ChatBubble = ({ telegramGroupUrl = "https://t.me/yumeonton" }) => {
   const handleClick = () => {
     window.open(telegramGroupUrl, '_blank');
   };

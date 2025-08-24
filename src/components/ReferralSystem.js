@@ -102,7 +102,7 @@ const ReferralSystem = () => {
       });
       
       if (response.success) {
-        setSuccess('Referral registered successfully! You\'ll earn 10% bonus on wins.');
+        setSuccess('Referral registered successfully! You\'ll earn 10% of our fees when your referrals win.');
         setReferralCode(''); // Clear the code after successful registration
         // Reload referral info
         const updatedInfo = await backendApi.fetchJson(`/api/referral/info/${encodeURIComponent(address)}`);
@@ -159,7 +159,7 @@ const ReferralSystem = () => {
               {referralInfo.referralEarnings.toFixed(6)} TON
             </div>
             <div className="referral-subtitle">
-              Earn 10% bonus on wins + 0.5% commission from referrals
+              Earn 10% of our fees when your referrals win
             </div>
           </div>
 
@@ -193,7 +193,7 @@ const ReferralSystem = () => {
               </button>
             </div>
             <div className="referral-subtitle">
-              Share this link to earn commissions from your referrals
+              Share this link to earn 10% of our fees when your referrals win
             </div>
           </div>
 
@@ -256,7 +256,7 @@ const ReferralSystem = () => {
           <div className="referral-subtitle">
             {referralInfo?.referrer ? 
               'You already have a referrer' : 
-              'Register this referral to earn 10% bonus on wins'
+              'Register this referral to earn 10% of our fees when they win'
             }
           </div>
           
@@ -282,7 +282,7 @@ const ReferralSystem = () => {
         </div>
         <div className="referral-info-list">
           <div className="referral-info-item">
-            • <strong>You earn 10% bonus</strong> on every win
+            • <strong>You earn 10% of our fees</strong> when your referrals win
           </div>
           <div className="referral-info-item">
             • <strong>Your referrer gets 5%</strong> of your bonus (0.5% of total prize)

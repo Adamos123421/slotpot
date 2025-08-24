@@ -432,7 +432,7 @@ html.telegram-fullscreen .app-container {
   
   .carousel-card {
     width: 120px;
-    height: 140px;
+    height: 180px;
   }
   
   /* Better spacing for landscape betting section */
@@ -472,7 +472,7 @@ html.telegram-fullscreen .app-container {
   
   html.telegram-fullscreen .carousel-card {
     width: 130px;
-    height: 160px;
+    height: 200px;
   }
 }
 
@@ -489,7 +489,7 @@ html.telegram-fullscreen .app-container {
   
   html.telegram-fullscreen .carousel-card {
     width: 130px;
-    height: 160px;
+    height: 200px;
   }
   
   html.telegram-fullscreen .main-content {
@@ -1801,7 +1801,7 @@ body[data-telegram="true"] .carousel-track {
 }
 
 .roulette-card {
-  height: 140px;
+  height: 220px;
   width: 105px;
   margin: 6px;
   border-radius: 16px;
@@ -1865,11 +1865,11 @@ body[data-telegram="true"] .carousel-track {
 }
 
 .avatar-container {
-  width: 48px;
-  height: 48px;
+  width: 75px;
+  height: 75px;
   border-radius: 12px;
   overflow: hidden;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   background: 
     linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%),
     rgba(15, 23, 42, 0.8);
@@ -2060,8 +2060,8 @@ body[data-telegram="true"] .carousel-track {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 16px 12px;
+  justify-content: space-between;
+  padding: 20px 12px 16px 12px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-style: dashed;
@@ -2083,12 +2083,12 @@ body[data-telegram="true"] .carousel-track {
 }
 
 .waiting-card .avatar-container {
-  width: 48px;
-  height: 48px;
+  width: 60px;
+  height: 60px;
   border-radius: 12px;
   overflow: hidden;
-  margin-bottom: 10px;
-  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 12px;
+  background: rgba(56, 163, 128, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
@@ -2102,13 +2102,17 @@ body[data-telegram="true"] .carousel-track {
 .waiting-card .waiting-text {
   font-size: 13px;
   color: rgba(255, 255, 255, 0.6);
-  margin: 6px 0;
+  margin: 12px 0 16px 0;
   max-width: 85px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 1.4;
+  min-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .waiting-card .waiting-amount {
@@ -2124,6 +2128,8 @@ body[data-telegram="true"] .carousel-track {
   border: none;
   box-shadow: none;
   transition: all 0.3s ease;
+  margin-top: 8px;
+  min-height: 20px;
 }
 
 .waiting-card .waiting-amount::before {
@@ -2141,20 +2147,7 @@ body[data-telegram="true"] .carousel-track {
     brightness(1.1);
 }
 
-.wheel-state-indicator {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 20px;
-  z-index: 10;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+
 
 /* Winner Highlight Effect - Bright Green */
 .roulette-card.winner-highlight .player-card {
@@ -2218,17 +2211,17 @@ body[data-telegram="true"] .carousel-track {
 /* Responsive adjustments for roulette */
 @media (max-width: 768px) {
   .roulette-wrapper {
-    height: 140px;
+    height: 180px;
   }
   
   .roulette-card {
-    height: 130px;
+    height: 170px;
     width: 90px;
   }
   
   .avatar-container {
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
   }
   
   .player-name {

@@ -97,7 +97,7 @@ const SimpleCarousel = ({
 
   // Idle movement - constant speed with true infinite scroll
   const startIdleMovement = useCallback(() => {
-    if (!wheelRef.current || wheelState !== 'idle') return;
+    if (!wheelRef.current || wheelState !== 'idle' || !effectivePlayers.length) return;
     
     const animate = () => {
       if (wheelState !== 'idle') return;

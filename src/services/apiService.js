@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://insight-enforcement-soul-tonight.trycloudflare.com';
+const API_BASE_URL = 'localhost:5002';
 
 class ApiService {
   constructor() {
