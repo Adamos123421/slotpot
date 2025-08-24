@@ -1,7 +1,7 @@
 // Backend API service for frontend
 class BackendApiService {
   constructor() {
-    this.baseUrl = "https://advantage-discovered-abraham-incident.trycloudflare.com/";
+    this.baseUrl = "https://advantage-discovered-abraham-incident.trycloudflare.com";
   }
 
   async fetchJson(endpoint, options = {}) {
