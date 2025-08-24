@@ -108,7 +108,7 @@ const ReferralSystem = () => {
         const updatedInfo = await backendApi.fetchJson(`/api/referral/info/${encodeURIComponent(address)}`);
         setReferralInfo(updatedInfo);
       } else {
-        setError(response.error || 'Failed to register referral');
+     
       }
     } catch (err) {
       console.error('Referral registration error:', err);
@@ -243,7 +243,37 @@ const ReferralSystem = () => {
         </>
       )}
 
-
+      {/* Referral Registration */}
+      {referralCode && referralCode !== address && (
+        <div className="referral-card referral-register">
+          <div className="referral-card-header">
+            <Users size={18} />
+            <span>Register Referral</span>
+          </div>
+          <div className="referral-code">
+            Referral Code: {referralCode.slice(0, 8)}...{referralCode.slice(-8)}
+          </div>
+          <div className="referral-subtitle">
+            {referralInfo?.referrer ? 
+              'You already have a referrer' : 
+              'Register this referral to earn 10% bonus on wins'
+            }
+          </div>
+          
+          {error && <div className="referral-error">{error}</div>}
+          {success && <div className="referral-success">{success}</div>}
+          
+          <button 
+            className="referral-register-btn"
+            onClick={handleRegisterReferral}
+            disabled={registering || referralInfo?.referrer}
+          >
+            {registering ? 'Registering...' : 
+             referralInfo?.referrer ? 'Already Referred' : 'Register Referral'
+            }
+          </button>
+        </div>
+      )}
 
       {/* How it works */}
       <div className="referral-card referral-info">
